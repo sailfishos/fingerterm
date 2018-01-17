@@ -209,6 +209,8 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
                 currAttrib.fgColor = nextAttrib.fgColor;
             }
         }
+        if (currentX < sTerm->columns() * iFontWidth)
+            drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, sTerm->columns() * iFontWidth - currentX, currAttrib);
 
         // text for the current line
         QString line;
