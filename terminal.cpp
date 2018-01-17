@@ -43,11 +43,6 @@ Terminal::Terminal(QObject *parent) :
     iTermSize(0,0), iEmitCursorChangeSignal(true),
     iShowCursor(true), iUseAltScreenBuffer(false), iAppCursorKeys(false)
 {
-    zeroChar.c = ' ';
-    zeroChar.bgColor = defaultBgColor;
-    zeroChar.fgColor = defaultFgColor;
-    zeroChar.attrib = 0;
-
     escape = -1;
 
     iTermAttribs.currentFgColor = defaultFgColor;
@@ -71,6 +66,18 @@ void Terminal::setPtyIFace(PtyIFace *pty)
     if(!pty) {
         qDebug() << "warning: null pty iface";
     }
+}
+
+TermChar Terminal::zeroChar() const
+{
+    TermChar ch;
+
+    ch.c = ' ';
+    ch.bgColor = iTermAttribs.currentBgColor;
+    ch.fgColor = iTermAttribs.currentFgColor;
+    ch.attrib = iTermAttribs.currentAttrib;
+
+    return ch;
 }
 
 void Terminal::setCursorPos(QPoint pos)
@@ -465,10 +472,10 @@ void Terminal::insertAtCursor(QChar c, bool overwriteMode, bool advanceCursor)
     }
 
     while(currentLine().size() < cursorPos().x() )
-        currentLine().append(zeroChar);
+        currentLine().append(zeroChar());
 
     if(!overwriteMode)
-        currentLine().insert(cursorPos().x()-1,zeroChar);
+        currentLine().insert(cursorPos().x()-1,zeroChar());
 
     currentLine()[cursorPos().x()-1].c = c;
     currentLine()[cursorPos().x()-1].fgColor = iTermAttribs.currentFgColor;
@@ -499,9 +506,9 @@ void Terminal::clearAt(QPoint pos)
     while(buffer().size() < pos.y())
         buffer().append(QList<TermChar>());
     while(buffer()[pos.y()-1].size() < pos.x() )
-        buffer()[pos.y()-1].append(zeroChar);
+        buffer()[pos.y()-1].append(zeroChar());
 
-    buffer()[pos.y()-1][pos.x()-1] = zeroChar;
+    buffer()[pos.y()-1][pos.x()-1] = zeroChar();
 }
 
 void Terminal::eraseLineAtCursor(int from, int to)
@@ -521,9 +528,8 @@ void Terminal::eraseLineAtCursor(int from, int to)
     if(from>to)
         return;
 
-    for(int i=from; i<=to; i++) {
-        currentLine()[i] = zeroChar;
-    }
+    for(int i=from; i<=to; i++)
+        currentLine()[i] = zeroChar();
 }
 
 void Terminal::clearAll(bool wholeBuffer)
@@ -750,7 +756,7 @@ void Terminal::ansiSequence(const QString& seq)
         if(params.at(0)==0)
             params[0] = 1;
         for(int i=1; i<=params.at(0); i++)
-            insertAtCursor(zeroChar.c, false, false);
+            insertAtCursor(' ', false, false);
         break;
 
     case 'S':  // scroll up n lines
@@ -1057,7 +1063,7 @@ void Terminal::escControlChar(const QString& seq)
             for (int i = 0; i < rows(); i++) {
                 QList<TermChar> line;
                 for(int j = 0; j < columns(); j++) {
-                    TermChar c = zeroChar;
+                    TermChar c = zeroChar();
                     c.c = 'E';
                     line.append(c);
                 }

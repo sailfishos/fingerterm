@@ -104,7 +104,7 @@ public:
     int rows();
     int columns();
 
-    TermChar zeroChar;
+    TermChar zeroChar() const;
 
 signals:
     void cursorPosChanged(QPoint newPos);

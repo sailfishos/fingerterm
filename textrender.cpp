@@ -170,9 +170,8 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
 
-    TermChar tmp = sTerm->zeroChar;
-    TermChar nextAttrib = sTerm->zeroChar;
-    TermChar currAttrib = sTerm->zeroChar;
+    TermChar nextAttrib = sTerm->zeroChar();
+    TermChar currAttrib = sTerm->zeroChar();
     int currentX = leftmargin;
     for(int i=from; i<to; i++) {
         y += iFontHeight;
@@ -188,7 +187,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
         currentX = leftmargin;
         int fragWidth = 0;
         for(int j=0; j<xcount; j++) {
-            tmp = buffer[i][j];
+            TermChar tmp = buffer[i][j];
             fragWidth += iFontWidth;
             if (j==0) {
                 currAttrib = tmp;
@@ -215,7 +214,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
         QString line;
         currentX = leftmargin;
         for (int j=0; j<xcount; j++) {
-            tmp = buffer[i][j];
+            TermChar tmp = buffer[i][j];
             line += tmp.c;
             if (j==0) {
                 currAttrib = tmp;
