@@ -99,11 +99,15 @@ int main(int argc, char *argv[])
 
     QScreen* sc = app.primaryScreen();
     if(sc){
-        sc->setOrientationUpdateMask(Qt::PrimaryOrientation
-                                     | Qt::LandscapeOrientation
-                                     | Qt::PortraitOrientation
-                                     | Qt::InvertedLandscapeOrientation
-                                     | Qt::InvertedPortraitOrientation);
+        QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
+                | Qt::PortraitOrientation
+                | Qt::LandscapeOrientation
+                | Qt::InvertedPortraitOrientation
+                | Qt::InvertedLandscapeOrientation;
+        if (settings->contains("ui/orientationMask")) {
+            mask &= settings->value("ui/orientationMask").toInt();
+        }
+        sc->setOrientationUpdateMask(mask);
     }
 
     qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");
