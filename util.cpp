@@ -154,7 +154,7 @@ void Util::keyPressFeedback()
 
 void Util::keyReleaseFeedback()
 {
-    if( !settingsValue("ui/keyPressFeedback", true).toBool() )
+    if( !settingsValue("ui/keyReleaseFeedback", true).toBool() )
         return;
 
     // TODO: check what's more comfortable, only press, or press and release

@@ -71,27 +71,18 @@ int main(int argc, char *argv[])
         if(execCmd.isEmpty()) {
             execCmd = settings->value("general/execCmd").toString();
         }
-        if(execCmd.isEmpty()) {
-            // execute the user's default shell
-            passwd *pwdstruct = getpwuid(getuid());
-            execCmd = QString(pwdstruct->pw_shell);
-            execCmd.append(" --login");
-        }
 
         delete settings; // don't need 'em here
 
-        QStringList execParts = execCmd.split(' ', QString::SkipEmptyParts);
-        if(execParts.length()==0)
-            exit(0);
-        char *ptrs[execParts.length()+1];
-        for(int i=0; i<execParts.length(); i++) {
-            ptrs[i] = new char[execParts.at(i).toLatin1().length()+1];
-            memcpy(ptrs[i], execParts.at(i).toLatin1().data(), execParts.at(i).toLatin1().length());
-            ptrs[i][execParts.at(i).toLatin1().length()] = 0;
+        passwd *pwdstruct = getpwuid(getuid());
+        char *shell = pwdstruct->pw_shell;
+        if (execCmd.isEmpty()) {
+            // execute the user's default shell
+            execl(shell, shell, "--login", (char*)NULL);
+        } else {
+            execl(shell, shell, "-c", qPrintable(execCmd), (char*)NULL);
         }
-        ptrs[execParts.length()] = 0;
 
-        execvp(execParts.first().toLatin1(), ptrs);
         exit(0);
     }
 
@@ -99,11 +90,15 @@ int main(int argc, char *argv[])
 
     QScreen* sc = app.primaryScreen();
     if(sc){
-        sc->setOrientationUpdateMask(Qt::PrimaryOrientation
-                                     | Qt::LandscapeOrientation
-                                     | Qt::PortraitOrientation
-                                     | Qt::InvertedLandscapeOrientation
-                                     | Qt::InvertedPortraitOrientation);
+        QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
+                | Qt::PortraitOrientation
+                | Qt::LandscapeOrientation
+                | Qt::InvertedPortraitOrientation
+                | Qt::InvertedLandscapeOrientation;
+        if (settings->contains("ui/orientationMask")) {
+            mask &= settings->value("ui/orientationMask").toInt();
+        }
+        sc->setOrientationUpdateMask(mask);
     }
 
     qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");

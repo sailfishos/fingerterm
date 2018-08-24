@@ -87,7 +87,20 @@ Item {
             property int scrollBarWidth: 6*window.pixelRatio
 
             anchors.fill: parent
-            color: bellTimer.running ? "#ffffff" : bgcolor
+            color: bgcolor
+
+            Rectangle {
+                id: bellTimerRect
+                visible: opacity > 0
+                opacity: bellTimer.running ? 0.5 : 0.0
+                anchors.fill: parent
+                color: "#ffffff"
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: bellTimer.interval
+                    }
+                }
+            }
 
             Lineview {
                 id: lineView
@@ -236,8 +249,7 @@ Item {
 
             Timer {
                 id: bellTimer
-
-                interval: 80
+                interval: 120
             }
 
             Connections {
