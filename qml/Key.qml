@@ -26,8 +26,8 @@ Rectangle {
     property string label_alt
     property int code
     property int code_alt
-    property int currentCode: (shiftActive && label_alt != '') ? code_alt : code
-    property string currentLabel: (shiftActive && label_alt != '') ? label_alt : label
+    property int currentCode: isAltCurrent ? code_alt : code
+    property string currentLabel: isAltCurrent ? keyAltLabel.text : keyLabel.text
     property bool sticky        // can key be stickied?
     property bool becomesSticky // will this become sticky after release?
     property int stickiness     // current stickiness status
@@ -36,6 +36,7 @@ Rectangle {
     // mouse input handling
     property bool isClick
     property bool shiftActive: (keyboard.keyModifiers & Qt.ShiftModifier) && !sticky
+    property bool isAltCurrent: shiftActive && label_alt != ''
 
     width: window.width/12   // some default
     height: window.height/8 < 55*window.pixelRatio ? window.height/8 : 55*window.pixelRatio
@@ -59,7 +60,7 @@ Rectangle {
 
         Text {
             id: keyAltLabel
-            property bool highlighted: key.shiftActive
+            property bool highlighted: key.isAltCurrent
 
             anchors.horizontalCenter: parent.horizontalCenter
 
@@ -76,7 +77,7 @@ Rectangle {
 
         Text {
             id: keyLabel
-            property bool highlighted: key.label_alt == '' || !key.shiftActive
+            property bool highlighted: !key.isAltCurrent
 
             anchors.horizontalCenter: parent.horizontalCenter
 
