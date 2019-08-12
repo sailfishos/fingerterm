@@ -2,10 +2,10 @@ Name: fingerterm
 Version: 1.3.5
 Release: 1
 Summary: A terminal emulator with a custom virtual keyboard
-Group: System/Base
+Group:   System/Base
 License: GPLv2
 Source0: %{name}-%{version}.tar.gz
-URL: https://git.merproject.org/mer-core/fingerterm
+URL:     https://git.sailfishos.org/mer-core/fingerterm
 BuildRequires: pkgconfig(Qt5Core)
 BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
@@ -24,9 +24,7 @@ Provides: meego-terminal > 0.2.2
 %defattr(-,root,root,-)
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
-%{_datadir}/%{name}/*.qml
-%{_datadir}/%{name}/data/*
-%{_datadir}/%{name}/icons/*
+%{_datadir}/%{name}
 
 %prep
 %setup -q -n %{name}-%{version}
