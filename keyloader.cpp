@@ -35,7 +35,7 @@ KeyLoader::~KeyLoader()
 {
 }
 
-bool KeyLoader::loadLayout(QString layout)
+bool KeyLoader::loadLayout(const QString &layout)
 {
     bool ret = false;
     if(layout.isEmpty() || !iUtil)
@@ -155,6 +155,8 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
 
     if (!ret)
         iKeyData.clear();
+    else
+        emit vkbChanged();
 
     return ret;
 }
