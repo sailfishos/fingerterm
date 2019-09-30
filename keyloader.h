@@ -36,20 +36,23 @@ struct KeyData {
 class KeyLoader : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int vkbRows READ vkbRows NOTIFY vkbChanged)
+    Q_PROPERTY(int vkbColumns READ vkbColumns NOTIFY vkbChanged)
 public:
     explicit KeyLoader(QObject *parent = 0);
     virtual ~KeyLoader();
 
     void setUtil(Util* util) { iUtil = util; }
 
-    Q_INVOKABLE bool loadLayout(QString layout);
+    Q_INVOKABLE bool loadLayout(const QString &layout);
 
-    Q_INVOKABLE int vkbRows() { return iVkbRows; }
-    Q_INVOKABLE int vkbColumns() { return iVkbColumns; }
+    int vkbRows() const { return iVkbRows; }
+    int vkbColumns() const { return iVkbColumns; }
     Q_INVOKABLE QVariantList keyAt(int row, int col);
     Q_INVOKABLE const QStringList availableLayouts();
 
 signals:
+    void vkbChanged();
 
 public slots:
 

@@ -38,7 +38,7 @@ Item {
 
     property int outmargins: util.keyboardMargins
     property int keyspacing: 6
-    property int keysPerRow: keyLoader.vkbColumns()
+    property int keysPerRow: keyLoader.vkbColumns
     property real keywidth: (keyboard.width - keyspacing*keysPerRow - outmargins*2)/keysPerRow;
 
     width: parent.width
@@ -56,14 +56,14 @@ Item {
             Repeater {
                 id: rowRepeater
 
-                model: keyLoader.vkbRows()
+                model: keyLoader.vkbRows
                 delegate: Row {
                     spacing: keyboard.keyspacing
                     Repeater {
                         id: colRepeater
 
                         property int rowIndex: index
-                        model: keyLoader.vkbColumns()
+                        model: keyLoader.vkbColumns
                         delegate: Key {
                             property var keydata: keyLoader.keyAt(colRepeater.rowIndex, index)
                             label: keydata[0]
