@@ -89,6 +89,14 @@ Item {
             anchors.fill: parent
             color: bgcolor
 
+            Connections {
+                target: util
+                onKeyboardModeChanged: {
+                    window.setTextRenderAttributes();
+                    window.updateVKB();
+                }
+            }
+
             Rectangle {
                 id: bellTimerRect
                 visible: opacity > 0
@@ -163,7 +171,8 @@ Item {
                             //   - not in select mode, as it would be hard to select text
                             if (touchPoint.y < vkb.y && touchPoint.startY < vkb.y &&
                                     Math.abs(touchPoint.y - touchPoint.startY) < 20 &&
-                                    util.dragMode !== Util.DragSelect) {
+                                    util.dragMode !== Util.DragSelect &&
+                                    util.keyboardMode != Util.KeyboardFixed) {
                                 if (vkb.active) {
                                     window.sleepVKB();
                                 } else {
@@ -222,7 +231,9 @@ Item {
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
-                allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
+                allowGestures: (!vkb.active || util.keyboardMode == Util.KeyboardFixed)
+                               && !menu.showing && !urlWindow.show
+                               && !aboutDialog.show && !layoutWindow.show
 
                 Behavior on opacity {
                     NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
@@ -232,7 +243,7 @@ Item {
                 }
 
                 onCutAfterChanged: {
-                    // this property is used in the paint function, so make sure that the element gets
+                    // this property is used in the paint function, to make sure that the element gets
                     // painted with the updated value (might not otherwise happen because of caching)
                     textrender.redraw();
                 }
@@ -243,7 +254,9 @@ Item {
 
                 interval: util.keyboardFadeOutDelay
                 onTriggered: {
-                    window.sleepVKB();
+                    if (util.keyboardMode != Util.KeyboardFixed) {
+                        window.sleepVKB();
+                    }
                 }
             }
 
@@ -338,6 +351,9 @@ Item {
                 fadeTimer.restart();
                 vkb.active = true;
                 setTextRenderAttributes();
+                // FIXME: This "duration = 0" hack prevents the animations running at
+                // other times (e.g. on screen rotation). It should be using States.
+                textrender.duration = 0;
             }
 
             function sleepVKB()
@@ -345,39 +361,55 @@ Item {
                 textrender.duration = window.fadeInTime;
                 vkb.active = false;
                 setTextRenderAttributes();
+                // FIXME: This "duration = 0" hack prevents the animations running at
+                // other times (e.g. on screen rotation). It should be using States.
+                textrender.duration = 0;
+            }
+
+            function updateVKB()
+            {
+                if(!vkb.visibleSetting)
+                    return;
+
+                textrender.duration = 0;
+                fadeTimer.restart();
+                setTextRenderAttributes();
+            }
+
+            function _applyKeyboardOffset()
+            {
+                if(vkb.active) {
+                    var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
+                            + textrender.fontHeight*util.extraLinesFromCursor
+                    if (move < vkb.y) {
+                        textrender.y = 0;
+                        textrender.cutAfter = vkb.y;
+                    } else {
+                        textrender.y = 0 - move + vkb.y
+                        textrender.cutAfter = move;
+                    }
+                } else {
+                    textrender.y = 0;
+                    textrender.cutAfter = textrender.height;
+                }
             }
 
             function setTextRenderAttributes()
             {
-                if (util.keyboardMode == Util.KeyboardMove)
+                var solidKeyboard = (util.keyboardMode === Util.KeyboardMove)
+                        || (util.keyboardMode === Util.KeyboardFixed)
+
+                if (solidKeyboard)
                 {
+                    vkb.active |= (util.keyboardMode === Util.KeyboardFixed);
                     vkb.visibleSetting = true;
-                    if(vkb.active) {
-                        var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
-                                + textrender.fontHeight*util.extraLinesFromCursor
-                        if(move < vkb.y) {
-                            textrender.y = 0;
-                            textrender.cutAfter = vkb.y;
-                        } else {
-                            textrender.y = 0 - move + vkb.y
-                            textrender.cutAfter = move;
-                        }
-                    } else {
-                        textrender.cutAfter = textrender.height;
-                        textrender.y = 0;
-                    }
+                    _applyKeyboardOffset()
                 }
-                else if (util.keyboardMode == Util.KeyboardFade)
+                else
                 {
-                    vkb.visibleSetting = true;
-                    textrender.cutAfter = textrender.height;
+                    vkb.visibleSetting = (util.keyboardMode === Util.KeyboardFade);
                     textrender.y = 0;
-                }
-                else // "off" (vkb disabled)
-                {
-                    vkb.visibleSetting = false;
                     textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
                 }
             }
 

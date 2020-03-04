@@ -290,7 +290,7 @@ Item {
                         }
                         Rectangle {
                             width: window.buttonWidthLarge
-                            height: window.buttonHeightLarge
+                            height: window.buttonHeightLarge + window.buttonHeightSmall
                             radius: window.radiusSmall
                             color: "#606060"
                             border.color: "#000000"
@@ -307,25 +307,35 @@ Item {
                                 }
                                 Row {
                                     Button {
+                                        text: "Fixed"
+                                        highlighted: util.keyboardMode == Util.KeyboardFixed
+                                        onClicked: {
+                                            util.keyboardMode = Util.KeyboardFixed
+                                            menuWin.showing = false;
+                                        }
+                                        width: window.buttonWidthHalf
+                                        height: window.buttonHeightSmall
+                                    }
+                                    Button {
                                         text: "Off"
                                         highlighted: util.keyboardMode == Util.KeyboardOff
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardOff
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
+                                }
+                                Row {
                                     Button {
                                         text: "Fade"
                                         highlighted: util.keyboardMode == Util.KeyboardFade
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardFade
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
@@ -333,10 +343,9 @@ Item {
                                         highlighted: util.keyboardMode == Util.KeyboardMove
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardMove
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
                                 }

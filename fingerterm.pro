@@ -92,3 +92,10 @@ contains(MEEGO_EDITION,nemo) {
     desktopfile.files = $${TARGET}.desktop
     INSTALLS += desktopfile
 }
+
+DISTFILES += \
+    data/* \
+    icons/*.png \
+    qml/*.qml \
+    rpm/fingerterm.changes \
+    rpm/fingerterm.spec
