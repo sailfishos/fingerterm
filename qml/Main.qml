@@ -134,14 +134,16 @@ Item {
 
                 onPressed: {
                     touchPoints.forEach(function (touchPoint) {
-                        if (multiTouchArea.firstTouchId == -1) {
-                            multiTouchArea.firstTouchId = touchPoint.pointId;
+                        var key = vkb.keyAt(touchPoint.x, touchPoint.y);
+                        if ((key == null) || (!vkb.active)) {
+                            if (multiTouchArea.firstTouchId == -1) {
+                                multiTouchArea.firstTouchId = touchPoint.pointId;
 
-                            //gestures c++ handler
-                            textrender.mousePress(touchPoint.x, touchPoint.y);
+                                //gestures c++ handler
+                                textrender.mousePress(touchPoint.x, touchPoint.y - textrender.y);
+                            }
                         }
 
-                        var key = vkb.keyAt(touchPoint.x, touchPoint.y);
                         if (key != null) {
                             key.handlePress(multiTouchArea, touchPoint.x, touchPoint.y);
                         }
@@ -152,7 +154,7 @@ Item {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
                             //gestures c++ handler
-                            textrender.mouseMove(touchPoint.x, touchPoint.y);
+                            textrender.mouseMove(touchPoint.x, touchPoint.y - textrender.y);
                         }
 
                         var key = multiTouchArea.pressedKeys[touchPoint.pointId];
@@ -181,7 +183,7 @@ Item {
                             }
 
                             //gestures c++ handler
-                            textrender.mouseRelease(touchPoint.x, touchPoint.y);
+                            textrender.mouseRelease(touchPoint.x, touchPoint.y - textrender.y);
                             multiTouchArea.firstTouchId = -1;
                         }
 
@@ -241,7 +243,7 @@ Item {
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
-                allowGestures: (!vkb.active || util.keyboardMode == Util.KeyboardFixed)
+                allowGestures: (!vkb.active || util.keyboardMode !== Util.KeyboardFade)
                                && !menu.showing && !urlWindow.show
                                && !aboutDialog.show && !layoutWindow.show
 
