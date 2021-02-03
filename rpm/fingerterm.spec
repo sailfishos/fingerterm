@@ -41,13 +41,9 @@ Translation source for %{name}
 %prep
 %setup -q -n %{name}-%{version}
 
-
 %build
-qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications
-# Inject version number from RPM into source
-sed -i -e 's/PROGRAM_VERSION="[^"]*"/PROGRAM_VERSION="%{version}"/g' version.h
+qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
 make %{?_smp_mflags}
-
 
 %install
 rm -rf %{buildroot}
