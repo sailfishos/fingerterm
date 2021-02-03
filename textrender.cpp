@@ -437,6 +437,11 @@ QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)
     return last;
 }
 
+void TextRender::scrollToEnd()
+{
+    sTerm->resetBackBufferScrollPos();
+}
+
 void TextRender::doGesture(PanGesture gesture)
 {
     if( gesture==PanLeft ) {

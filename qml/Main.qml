@@ -211,13 +211,23 @@ Item {
                 }
             }
 
-            Image {
-                // terminal buffer scroll indicator
-                source: "icons/scroll-indicator.png"
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
+
+            MouseArea {
+                // terminal buffer scroll button
+                x: window.width - width
+                width: scrollImg.width + 60*window.pixelRatio
+                height: scrollImg.height + 30*window.pixelRatio
+                anchors.bottom: textrender.bottom
                 visible: textrender.showBufferScrollIndicator
-                scale: window.pixelRatio
+                onClicked: textrender.scrollToEnd()
+
+                Image {
+                    id: scrollImg
+
+                    anchors.centerIn: parent
+                    source: "icons/scroll-indicator.png"
+                    scale: window.pixelRatio
+                }
             }
 
             TextRender {
