@@ -129,7 +129,8 @@ Item {
         onKeyboardLayoutChanged: {
             var ret = keyLoader.loadLayout(util.keyboardLayout)
             if (!ret) {
-                showErrorMessage("There was an error loading the keyboard layout.<br>\nUsing the default one instead.");
+                //% "There was an error loading the keyboard layout. Using the default one instead."
+                showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"));
                 util.keyboardLayout = "english"
                 ret = keyLoader.loadLayout(":/data/english.layout"); //try the default as a fallback (load from resources to ensure it will succeed)
                 if (!ret) {

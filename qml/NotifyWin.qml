@@ -51,7 +51,9 @@ PopupWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: window.paddingMedium
-        text: "OK"
+        //: Button for closing the notification window
+        //% "OK"
+        text: qsTrId("fingerterm-notify_bt_okay")
         onClicked: {
             notifyWin.show = false
             notifyWin.dismissed();

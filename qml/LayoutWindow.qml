@@ -65,7 +65,8 @@ PopupWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         color: "#ffffff"
-        text: "Keyboard layout"
+        //% "Keyboard layout"
+        text: qsTrId("fingerterm-keyboard-layout_la_keyboard-layout")
         font.pointSize: window.uiFontSize + 4*window.pixelRatio;
     }
 
@@ -83,7 +84,9 @@ PopupWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: window.paddingMedium
-        text: "Back"
+        //: Return to the previous page
+        //% "Back"
+        text: qsTrId("fingerterm-keyboard-layout_la_back")
         onClicked: layoutWindow.show = false
     }
 }

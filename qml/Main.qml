@@ -313,18 +313,34 @@ Item {
                 id: aboutDialog
 
                 text: {
-                    var str = "<font size=\"+3\">FingerTerm " + util.versionString() + "</font><br>\n" +
+                    //% "Fingerterm"
+                    var title = qsTrId("fingerterm-about_la_fingerterm")
+                    //% "Author: "
+                    var author = qsTrId("fingerterm-about_la_author")
+                    //% "Config files for adjusting settings are at:"
+                    var configFiles = qsTrId("fingerterm-about_la_config-files-location")
+                    //% "Source code:"
+                    var sourceCode = qsTrId("fingerterm-about_la_source-code")
+                    //% "Current window title:"
+                    var windowTitle = qsTrId("fingerterm-about_la_window-title")
+                    //% "Current terminal size:"
+                    var terminalSize = qsTrId("fingerterm-about_la_terminal-size")
+                    //% "Charset:"
+                    var charSet = qsTrId("fingerterm-about_la_charset")
+
+
+                    var str = "<font size=\"+3\">" + title + " " + util.versionString() + "</font><br>\n" +
                             "<font size=\"+1\">" +
-                            "by Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
-                            "Config files for adjusting settings are at:<br>\n" +
+                            author + "Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
+                            configFiles + "<br>\n" +
                             util.configPath() + "/<br><br>\n" +
-                            "Source code:<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
+                            sourceCode + "<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
                     if (term.rows != 0 && term.columns != 0) {
-                        str += "<br><br>Current window title: <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>"; //cut long window title
+                        str += "<br><br>" + windowTitle + " <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>"; //cut long window title
                         if(util.windowTitle.length>40)
                             str += "...";
-                        str += "<br>Current terminal size: <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>";
-                        str += "<br>Charset: <font color=\"gray\">" + util.charset + "</font>";
+                        str += "<br>" + terminalSize + " <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>";
+                        str += "<br>" + charSet + " <font color=\"gray\">" + util.charset + "</font>";
                     }
                     str += "</font>";
                     return str;
