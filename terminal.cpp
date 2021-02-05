@@ -548,11 +548,15 @@ void Terminal::ansiSequence(const QString& seq)
     QList<int> params;
 
     int x=1;
-    while(x<seq.length()-1 && !QChar(seq.at(x)).isNumber())
+    while(x<seq.length()-1 && !QChar(seq.at(x)).isNumber() && seq.at(x)!=';')
         x++;
 
     QList<QString> tmp = seq.mid(x,seq.length()-x-1).split(';');
     foreach(QString b, tmp) {
+        if(b.isEmpty()) {
+            params.append(0);
+            continue;
+        }
         bool ok=false;
         int t = b.toInt(&ok);
         if(ok) {
