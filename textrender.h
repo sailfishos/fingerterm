@@ -54,6 +54,7 @@ public:
 
     Q_INVOKABLE QPoint cursorPixelPos();
     Q_INVOKABLE QSize cursorPixelSize();
+    Q_INVOKABLE void scrollToEnd();
 
     bool allowGestures();
     void setAllowGestures(bool allow);

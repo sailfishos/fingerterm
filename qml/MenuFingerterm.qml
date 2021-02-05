@@ -124,7 +124,8 @@ Item {
 
                         Row {
                             Button {
-                                text: "Copy"
+                                //% "Copy"
+                                text: qsTrId("fingerterm-menu_bt_copy")
                                 onClicked: {
                                     menuWin.showing = false;
                                     term.copySelectionToClipboard();
@@ -134,7 +135,8 @@ Item {
                                 enabled: util.terminalHasSelection
                             }
                             Button {
-                                text: "Paste"
+                                //% "Paste"
+                                text: qsTrId("fingerterm-menu_bt_paste")
                                 onClicked: {
                                     menuWin.showing = false;
                                     term.pasteFromClipboard();
@@ -145,7 +147,8 @@ Item {
                             }
                         }
                         Button {
-                            text: "URL grabber"
+                            //% "URL grabber"
+                            text: qsTrId("fingerterm-menu_bt_url-grabber")
                             width: window.buttonWidthLarge
                             height: window.buttonHeightLarge
                             onClicked: {
@@ -168,7 +171,8 @@ Item {
                                     height: window.headerHeight
                                     color: "#ffffff"
                                     font.pointSize: window.uiFontSize-1
-                                    text: "Font size"
+                                    //% "Font size"
+                                    text: qsTrId("fingerterm-menu_la_font-size")
                                     horizontalAlignment: Text.AlignHCenter
                                 }
                                 Row {
@@ -207,26 +211,39 @@ Item {
                                     height: window.headerHeight
                                     color: "#ffffff"
                                     font.pointSize: window.uiFontSize-1
-                                    text: "UI Orientation"
+                                    //% "UI Orientation"
+                                    text: qsTrId("fingerterm-menu_la_ui-orientation")
                                     horizontalAlignment: Text.AlignHCenter
                                 }
                                 Row {
                                     Button {
-                                        text: "<font size=\"-1\">Auto</font>"
+                                        text: "<font size=\"-1\">"
+                                                //: Automatic font size
+                                                //% "Auto"
+                                              + qsTrId("fingerterm-menu_bt_orientation-auto")
+                                              + "</font>"
                                         highlighted: util.orientationMode == Util.OrientationAuto
                                         onClicked: util.orientationMode = Util.OrientationAuto
                                         width: window.buttonWidthSmall
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
-                                        text: "<font size=\"-1\">L<font>"
+                                        text: "<font size=\"-1\">"
+                                                //: Short for "Landscape" orientation
+                                                //% "L"
+                                              + qsTrId("fingerterm-menu_bt_orientation-landscape")
+                                              + "<font>"
                                         highlighted: util.orientationMode == Util.OrientationLandscape
                                         onClicked: util.orientationMode = Util.OrientationLandscape
                                         width: window.buttonWidthSmall
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
-                                        text: "<font size=\"-1\">P</font>"
+                                        text: "<font size=\"-1\">"
+                                                //: Short for "Portrait" orientation
+                                                //% "P"
+                                              + qsTrId("fingerterm-menu_bt_orientation-portrait")
+                                              + "</font>"
                                         highlighted: util.orientationMode == Util.OrientationPortrait
                                         onClicked: util.orientationMode = Util.OrientationPortrait
                                         width: window.buttonWidthSmall
@@ -249,12 +266,16 @@ Item {
                                     height: window.headerHeight
                                     color: "#ffffff"
                                     font.pointSize: window.uiFontSize-1
-                                    text: "Drag mode"
+                                    //% "Drag mode"
+                                    text: qsTrId("fingerterm-menu_la_drag-mode")
                                     horizontalAlignment: Text.AlignHCenter
                                 }
                                 Row {
                                     Button {
-                                        text: "<font size=\"-1\">Gesture</font>"
+                                        text: "<font size=\"-1\">"
+                                                //% "Gesture"
+                                              + qsTrId("fingerterm-menu_bt_drag-mode-gesture")
+                                              + "</font>"
                                         highlighted: util.dragMode == Util.DragGestures
                                         onClicked: {
                                             util.dragMode = Util.DragGestures
@@ -265,7 +286,10 @@ Item {
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
-                                        text: "<font size=\"-1\">Scroll</font>"
+                                        text: "<font size=\"-1\">"
+                                                //% "Scroll"
+                                              + qsTrId("fingerterm-menu_bt_drag-mode-scroll")
+                                              + "</font>"
                                         highlighted: util.dragMode == Util.DragScroll
                                         onClicked: {
                                             util.dragMode = Util.DragScroll
@@ -276,7 +300,10 @@ Item {
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
-                                        text: "<font size=\"-1\">Select</font>"
+                                        text: "<font size=\"-1\">"
+                                                //% "Select"
+                                              + qsTrId("fingerterm-menu_bt_drag-mode-select")
+                                              + "</font>"
                                         highlighted: util.dragMode == Util.DragSelect
                                         onClicked: {
                                             util.dragMode = Util.DragSelect
@@ -290,7 +317,7 @@ Item {
                         }
                         Rectangle {
                             width: window.buttonWidthLarge
-                            height: window.buttonHeightLarge
+                            height: window.buttonHeightLarge + window.buttonHeightSmall
                             radius: window.radiusSmall
                             color: "#606060"
                             border.color: "#000000"
@@ -302,55 +329,77 @@ Item {
                                     height: window.headerHeight
                                     color: "#ffffff"
                                     font.pointSize: window.uiFontSize-1
-                                    text: "VKB behavior"
+                                    //: Virtual keyboard behavior
+                                    //% "VKB behavior"
+                                    text: qsTrId("fingerterm-menu_la_virtual-keyboard-behavior")
                                     horizontalAlignment: Text.AlignHCenter
                                 }
                                 Row {
                                     Button {
-                                        text: "Off"
+                                        //: Virtual keyboard behaviour
+                                        //% "Fixed"
+                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-fixed")
+                                        highlighted: util.keyboardMode == Util.KeyboardFixed
+                                        onClicked: {
+                                            util.keyboardMode = Util.KeyboardFixed
+                                            menuWin.showing = false;
+                                        }
+                                        width: window.buttonWidthHalf
+                                        height: window.buttonHeightSmall
+                                    }
+                                    Button {
+                                        //: Virtual keyboard behaviour
+                                        //% "Off"
+                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-offf")
                                         highlighted: util.keyboardMode == Util.KeyboardOff
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardOff
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
+                                }
+                                Row {
                                     Button {
-                                        text: "Fade"
+                                        //: Virtual keyboard behaviour
+                                        //% "Fade"
+                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-fade")
                                         highlighted: util.keyboardMode == Util.KeyboardFade
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardFade
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
-                                        text: "Move"
+                                        //: Virtual keyboard behaviour
+                                        //% "Move"
+                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-move")
                                         highlighted: util.keyboardMode == Util.KeyboardMove
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardMove
-                                            window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
-                                        width: window.buttonWidthSmall
+                                        width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
                                     }
                                 }
                             }
                         }
                         Button {
-                            text: "New window"
+                            //% "New window"
+                            text: qsTrId("fingerterm-menu_bt_new-window")
                             onClicked: {
                                 menuWin.showing = false;
                                 util.openNewWindow();
                             }
                         }
                         Button {
-                            text: "VKB layout..."
+                            //: Virtual keyboard layout
+                            //% "VKB layout"
+                            text: qsTrId("fingerterm-menu_bt_virtual-keyboard-layout")
                             onClicked: {
                                 menuWin.showing = false;
                                 layoutWindow.layouts = keyLoader.availableLayouts();
@@ -358,17 +407,11 @@ Item {
                             }
                         }
                         Button {
-                            text: "About"
+                            //% "About"
+                            text: qsTrId("fingerterm-menu_bt_about")
                             onClicked: {
                                 menuWin.showing = false;
                                 aboutDialog.show = true
-                            }
-                        }
-                        Button {
-                            text: "Quit"
-                            onClicked: {
-                                menuWin.showing = false;
-                                Qt.quit();
                             }
                         }
                     }
@@ -389,7 +432,9 @@ Item {
                         height: window.headerHeight
                         color: "#ffffff"
                         font.pointSize: window.uiFontSize-1
-                        text: "VKB delay: " + vkbDelaySlider.keyboardFadeOutDelay + " ms"
+                        //: Virtual keyboard delay for hiding the keyboard in milliseconds
+                        //% "VKB delay %1 ms"
+                        text: qsTrId("fingerterm-menu_la_virtual-keyboard-delay").arg(vkbDelaySlider.keyboardFadeOutDelay)
                         horizontalAlignment: Text.AlignHCenter
                     }
                     Rectangle {

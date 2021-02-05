@@ -52,6 +52,7 @@ class Util : public QObject
 public:
     enum KeyboardMode {
         KeyboardOff,
+        KeyboardFixed,
         KeyboardFade,
         KeyboardMove
     };
@@ -140,6 +141,9 @@ signals:
     void orientationModeChanged();
     void showWelcomeScreenChanged();
 
+private slots:
+    void contentOrientationChanged(Qt::ScreenOrientation);
+
 private:
     Q_DISABLE_COPY(Util)
 
@@ -148,6 +152,7 @@ private:
     QSettings* iSettings;
     QQuickView* iWindow;
     Terminal* iTerm;
+    KeyboardMode iKeyboardMode;
 };
 
 #endif // UTIL_H

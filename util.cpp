@@ -38,7 +38,8 @@ Util::Util(QSettings *settings, QObject *parent) :
     QObject(parent),
     iSettings(settings),
     iWindow(0),
-    iTerm(0)
+    iTerm(0),
+    iKeyboardMode(KeyboardOff)
 {
     connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardOrSelectionChanged()));
 }
@@ -55,7 +56,7 @@ void Util::setWindow(QQuickView* win)
     iWindow = win;
     if(!iWindow)
         qFatal("invalid main window");
-    connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SIGNAL(windowOrientationChanged()));
+    connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SLOT(contentOrientationChanged(Qt::ScreenOrientation)));
 }
 
 void Util::setWindowTitle(QString title)
@@ -78,6 +79,16 @@ int Util::windowOrientation()
 void Util::setWindowOrientation(int orientation)
 {
     iWindow->reportContentOrientationChange(static_cast<Qt::ScreenOrientation>(orientation));
+}
+
+void Util::contentOrientationChanged(Qt::ScreenOrientation)
+{
+    KeyboardMode mode = static_cast<KeyboardMode>(keyboardMode());
+    emit windowOrientationChanged();
+    if (mode != iKeyboardMode) {
+        iKeyboardMode = mode;
+        emit keyboardModeChanged();
+    }
 }
 
 void Util::setTerm(Terminal *term)
@@ -221,12 +232,20 @@ void Util::setDragMode(int mode)
 
 int Util::keyboardMode()
 {
-    QString mode = settingsValue("ui/vkbShowMethod", "move").toString();
+    bool portrait = iWindow->contentOrientation() & (Qt::PortraitOrientation | Qt::InvertedPortraitOrientation);
+    QString mode;
+    if (portrait) {
+        mode = settingsValue("ui/vkbShowMethodPortrait", "move").toString();
+    } else {
+        mode = settingsValue("ui/vkbShowMethodLandscape", "move").toString();
+    }
 
     if (mode == "fade") {
         return KeyboardFade;
     } else if (mode == "move") {
         return KeyboardMove;
+    } else if (mode == "fixed" ) {
+        return KeyboardFixed;
     } else {
         return KeyboardOff;
     }
@@ -246,12 +265,21 @@ void Util::setKeyboardMode(int mode)
     case KeyboardMove:
         modeString = "move";
         break;
+    case KeyboardFixed:
+        modeString = "fixed";
+        break;
     case KeyboardOff:
     default:
         modeString = "off";
     }
 
-    setSettingsValue("ui/vkbShowMethod", modeString);
+    bool portrait = iWindow->contentOrientation() & (Qt::PortraitOrientation | Qt::InvertedPortraitOrientation);
+
+    if (portrait) {
+        setSettingsValue("ui/vkbShowMethodPortrait", modeString);
+    } else {
+        setSettingsValue("ui/vkbShowMethodLandscape", modeString);
+    }
     emit keyboardModeChanged();
 }
 

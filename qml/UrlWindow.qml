@@ -46,7 +46,9 @@ PopupWindow {
             }
             Button {
                 id: openButton
-                text: "Open"
+                //: Button for opening a URL
+                //% "Open"
+                text: qsTrId("fingerterm-url-window_bt_open")
                 anchors.right: copyButton.left
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.rightMargin: window.paddingSmall
@@ -59,7 +61,9 @@ PopupWindow {
                 id: copyButton
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Copy"
+                //: Button for copying a URL
+                //% "Copy"
+                text: qsTrId("fingerterm-url-window_bt_copy")
                 width: 70*window.pixelRatio
                 anchors.rightMargin: window.paddingSmall
                 onClicked: {
@@ -73,7 +77,9 @@ PopupWindow {
         visible: urlWindow.urls.length == 0
         anchors.centerIn: parent
         color: "#ffffff"
-        text: "No URLs"
+        //: Shown when no URLs are available
+        //% "No URLs"
+        text: qsTrId("fingerterm-url-window_la_no-urls")
         font.pointSize: window.uiFontSize + 4*window.pixelRatio
     }
 
@@ -90,7 +96,9 @@ PopupWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: window.paddingMedium
-        text: "Back"
+        //: Button for closing the URL window
+        //% "Back"
+        text: qsTrId("fingerterm-url-window_bt_back")
         onClicked: urlWindow.show = false
     }
 }

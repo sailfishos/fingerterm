@@ -24,6 +24,8 @@
 #include <QQuickView>
 #include <QDir>
 #include <QString>
+#include <QLocale>
+#include <QTranslator>
 
 extern "C" {
 #include <pty.h>
@@ -86,7 +88,14 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
+    QScopedPointer<QTranslator> engineeringEnglish(new QTranslator);
+    engineeringEnglish->load("fingerterm_eng_en", TRANSLATIONS_PATH);
+    QScopedPointer<QTranslator> translator(new QTranslator);
+    translator->load(QLocale(), "fingerterm", "-", TRANSLATIONS_PATH);
+
     QGuiApplication app(argc, argv);
+    app.installTranslator(engineeringEnglish.data());
+    app.installTranslator(translator.data());
 
     QScreen* sc = app.primaryScreen();
     if(sc){
