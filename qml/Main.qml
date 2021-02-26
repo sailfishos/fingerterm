@@ -315,7 +315,7 @@ Item {
                 text: {
                     //% "Fingerterm"
                     var title = qsTrId("fingerterm-about_la_fingerterm")
-                    //% "Author: "
+                    //% "Author:"
                     var author = qsTrId("fingerterm-about_la_author")
                     //% "Config files for adjusting settings are at:"
                     var configFiles = qsTrId("fingerterm-about_la_config-files-location")
@@ -331,7 +331,7 @@ Item {
 
                     var str = "<font size=\"+3\">" + title + " " + util.versionString() + "</font><br>\n" +
                             "<font size=\"+1\">" +
-                            author + "Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
+                            author + " Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
                             configFiles + "<br>\n" +
                             util.configPath() + "/<br><br>\n" +
                             sourceCode + "<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
