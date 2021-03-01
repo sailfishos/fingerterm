@@ -78,13 +78,14 @@ Item {
 
             property int paddingSmall: 5*pixelRatio
             property int paddingMedium: 10*pixelRatio
+            property int paddingLarge: 20*pixelRatio
 
             property int fontSizeSmall: 14*pixelRatio
             property int fontSizeLarge: 24*pixelRatio
 
-            property int uiFontSize: util.uiFontSize * pixelRatio
+            property int uiFontSize: util.uiFontSize*pixelRatio
 
-            property int scrollBarWidth: 6*window.pixelRatio
+            property int scrollBarWidth: 6*pixelRatio
 
             anchors.fill: parent
             color: bgcolor
@@ -298,10 +299,14 @@ Item {
                 // shows large text notification in the middle of the screen (for gestures)
                 id: textNotify
 
-                anchors.centerIn: parent
+                anchors.fill: parent
+                anchors.margins: window.paddingSmall
                 color: "#ffffff"
                 opacity: 0
                 font.pointSize: 40*window.pixelRatio
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                wrapMode: Text.Wrap
 
                 Behavior on opacity {
                     id: textNotifyAnim
@@ -309,43 +314,8 @@ Item {
                 }
             }
 
-            NotifyWin {
+            AboutWindow {
                 id: aboutDialog
-
-                text: {
-                    //% "Fingerterm"
-                    var title = qsTrId("fingerterm-about_la_fingerterm")
-                    //% "Author:"
-                    var author = qsTrId("fingerterm-about_la_author")
-                    //% "Config files for adjusting settings are at:"
-                    var configFiles = qsTrId("fingerterm-about_la_config-files-location")
-                    //% "Source code:"
-                    var sourceCode = qsTrId("fingerterm-about_la_source-code")
-                    //% "Current window title:"
-                    var windowTitle = qsTrId("fingerterm-about_la_window-title")
-                    //% "Current terminal size:"
-                    var terminalSize = qsTrId("fingerterm-about_la_terminal-size")
-                    //% "Charset:"
-                    var charSet = qsTrId("fingerterm-about_la_charset")
-
-
-                    var str = "<font size=\"+3\">" + title + " " + util.versionString() + "</font><br>\n" +
-                            "<font size=\"+1\">" +
-                            author + " Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
-                            configFiles + "<br>\n" +
-                            util.configPath() + "/<br><br>\n" +
-                            sourceCode + "<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
-                    if (term.rows != 0 && term.columns != 0) {
-                        str += "<br><br>" + windowTitle + " <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>"; //cut long window title
-                        if(util.windowTitle.length>40)
-                            str += "...";
-                        str += "<br>" + terminalSize + " <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>";
-                        str += "<br>" + charSet + " <font color=\"gray\">" + util.charset + "</font>";
-                    }
-                    str += "</font>";
-                    return str;
-                }
-                onDismissed: util.showWelcomeScreen = false
             }
 
             NotifyWin {

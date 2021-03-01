@@ -50,10 +50,12 @@ qml.files = qml/Main.qml \
     qml/Key.qml \
     qml/Lineview.qml \
     qml/Button.qml \
+    qml/SectionHeader.qml \
     qml/MenuFingerterm.qml \
     qml/NotifyWin.qml \
     qml/UrlWindow.qml \
     qml/LayoutWindow.qml \
+    qml/AboutWindow.qml \
     qml/PopupWindow.qml
 qml.path = $$DEPLOYMENT_PATH
 INSTALLS += qml

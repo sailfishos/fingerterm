@@ -47,59 +47,37 @@ PopupWindow {
 
     Component {
         id: listDelegate
-        Rectangle {
-            color: util.keyboardLayout === modelData ? "#909090" : "#404040"
-            width: parent.width
-            height: selectButton.height+4*window.pixelRatio
-            border.width: 1
-            border.color: "#ffffff"
-            radius: window.radiusSmall
-            clip: true
 
-            Text {
-                text: translateLayoutName(modelData)
-                color: "#ffffff"
-                anchors.verticalCenter: parent.verticalCenter
-                x: 8*window.pixelRatio
-                width: selectButton.x - x
-                font.pointSize: window.uiFontSize
-                elide: Text.ElideRight
-            }
-            Button {
-                id: selectButton
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                //: Button used for selecting the keyboard layout
-                //% "Select"
-                text: qsTrId("fingerterm-keyboard-layout_la_keyboard-layout-select")
-                width: 70*window.pixelRatio
-                anchors.rightMargin: window.paddingSmall
-                onClicked: {
-                    util.keyboardLayout = modelData
-                    layoutWindow.show = false
-                    util.notifyText(translateLayoutName(modelData))
-                }
+        Button {
+            text: translateLayoutName(modelData)
+            highlighted: util.keyboardLayout === modelData
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width - 2*window.paddingSmall
+            font.pointSize: window.uiFontSize
+            onClicked: {
+                util.keyboardLayout = modelData
+                layoutWindow.show = false
+                util.notifyText(translateLayoutName(modelData))
             }
         }
     }
 
-    Text {
+    SectionHeader {
         id: titleText
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        color: "#ffffff"
+        width: parent.width
         //% "Keyboard layout"
-        text: qsTrId("fingerterm-keyboard-layout_la_keyboard-layout")
-        font.pointSize: window.uiFontSize + 4*window.pixelRatio;
+        text: qsTrId("fingerterm-keyboard-layout_sh_keyboard-layout")
+        font.pointSize: window.uiFontSize + 4*window.pixelRatio
     }
 
     ListView {
         anchors.fill: parent
-        anchors.topMargin: titleText.height + 4*window.pixelRatio
+        anchors.topMargin: titleText.height + window.paddingSmall
         delegate: listDelegate
         model: layoutWindow.layouts
         spacing: window.paddingSmall
         anchors.margins: window.paddingSmall
+        boundsBehavior: Flickable.StopAtBounds
         clip: true
     }
 
