@@ -24,6 +24,27 @@ PopupWindow {
 
     property var layouts: [""]
 
+    function translateLayoutName(layout) {
+        switch (layout) {
+        case "":
+            //: Keyboard layout without any name given
+            //% "Unknown"
+            return qsTrId("fingerterm-keyboard-layout_la_keyboard-layout-unknown")
+        case "english":
+            return "English"
+        case "finnish":
+            return "Suomi"
+        case "french":
+            return "Français"
+        case "german":
+            return "Deutsch"
+        case "qwertz":
+            return "QWERTZ"
+        default:
+            return layout.charAt(0).toUpperCase() + layout.substr(1)
+        }
+    }
+
     Component {
         id: listDelegate
         Rectangle {
@@ -36,7 +57,7 @@ PopupWindow {
             clip: true
 
             Text {
-                text: modelData
+                text: translateLayoutName(modelData)
                 color: "#ffffff"
                 anchors.verticalCenter: parent.verticalCenter
                 x: 8*window.pixelRatio
@@ -48,13 +69,15 @@ PopupWindow {
                 id: selectButton
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Select"
+                //: Button used for selecting the keyboard layout
+                //% "Select"
+                text: qsTrId("fingerterm-keyboard-layout_la_keyboard-layout-select")
                 width: 70*window.pixelRatio
                 anchors.rightMargin: window.paddingSmall
                 onClicked: {
                     util.keyboardLayout = modelData
                     layoutWindow.show = false
-                    util.notifyText(modelData)
+                    util.notifyText(translateLayoutName(modelData))
                 }
             }
         }
