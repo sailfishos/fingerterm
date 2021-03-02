@@ -26,6 +26,9 @@ Rectangle {
     property string textColor: "#ffffff"
     property bool enabled: true
     property bool highlighted
+    property int minHeight: window.buttonHeightLarge
+    property alias font: title.font
+    property alias horizontalAlignment: title.horizontalAlignment
 
     // for custom user menu actions
     property bool isShellCommand
@@ -40,7 +43,7 @@ Rectangle {
     clip: true
 
     width: window.buttonWidthLarge
-    height: window.buttonHeightLarge
+    height: Math.max(minHeight, title.implicitHeight + 2*window.paddingSmall)
 
     Text {
         // decoration for user-defined command buttons
@@ -52,11 +55,18 @@ Rectangle {
     }
 
     Text {
+        id: title
         text: button.text
-        color: button.enabled ? button.textColor : "#606060"
-        anchors.centerIn: parent
+        color: !button.enabled ? "#606060"
+                               : btnMouseArea.pressed ? "#000000"
+                                                      : button.textColor
+        anchors.fill: parent
+        anchors.margins: window.paddingSmall
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         // avoid warnings on startup by protection against 0 size
         font.pointSize: window.uiFontSize > 0 ? window.uiFontSize : 12
+        wrapMode: Text.Wrap
     }
 
     MouseArea {
