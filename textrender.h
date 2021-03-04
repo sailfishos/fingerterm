@@ -79,7 +79,7 @@ private:
 
     enum PanGesture { PanNone, PanLeft, PanRight, PanUp, PanDown };
 
-    void paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buffer, int from, int to, int &y);
+    void paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int &y);
     void drawBgFragment(QPainter* painter, int x, int y, int width, TermChar style);
     void drawTextFragment(QPainter* painter, int x, int y, QString text, TermChar style);
     QPoint charsToPixels(QPoint pos);

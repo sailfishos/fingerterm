@@ -165,7 +165,7 @@ void TextRender::paint(QPainter* painter)
     painter->restore();
 }
 
-void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buffer, int from, int to, int &y)
+void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int &y)
 {
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
@@ -181,7 +181,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
         else
             painter->setOpacity(1.0);
 
-        int xcount = qMin(buffer.at(i).count(), sTerm->columns());
+        int xcount = qMin(buffer.at(i).size(), sTerm->columns());
 
         // background for the current line
         currentX = leftmargin;
@@ -209,8 +209,13 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
                 currAttrib.fgColor = nextAttrib.fgColor;
             }
         }
-        if (currentX < sTerm->columns() * iFontWidth)
-            drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, sTerm->columns() * iFontWidth - currentX, currAttrib);
+        if (currentX < sTerm->columns() * iFontWidth) {
+            TermChar eol;
+            eol.fgColor = buffer[i].fgColor;
+            eol.bgColor = buffer[i].bgColor;
+            eol.attrib = buffer[i].attrib;
+            drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, sTerm->columns() * iFontWidth - currentX, eol);
+        }
 
         // text for the current line
         QString line;
