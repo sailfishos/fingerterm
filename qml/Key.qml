@@ -159,8 +159,6 @@ Rectangle {
         }
 
         if (vkb.keyAt(x, y) == key) {
-            util.keyReleaseFeedback();
-
             if (key.sticky && key.becomesSticky) {
                 setStickiness(-1);
             }
