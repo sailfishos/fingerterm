@@ -50,6 +50,34 @@ struct TermAttribs {
     int currentAttrib;
 };
 
+struct TermLine {
+    QList<TermChar> l;
+    int fgColor;
+    int bgColor;
+    int attrib;
+
+    TermLine()
+        : fgColor(0), bgColor(0), attrib(0)
+    {
+    }
+    TermChar& operator[](int i)
+    {
+        return l[i];
+    }
+    int size() const
+    {
+        return l.size();
+    }
+    void clear()
+    {
+        return l.clear();
+    }
+    void append(const TermChar &c)
+    {
+        l.append(c);
+    }
+};
+
 class Terminal : public QObject
 {
     Q_OBJECT
@@ -76,10 +104,10 @@ public:
     QSize termSize() { return iTermSize; }
     void setTermSize(QSize size);
 
-    QList<QList<TermChar> >& buffer();
-    QList<QList<TermChar> >& backBuffer() { return iBackBuffer; }
+    QList<TermLine>& buffer();
+    QList<TermLine>& backBuffer() { return iBackBuffer; }
 
-    QList<TermChar>& currentLine();
+    TermLine& currentLine();
 
     Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text="");
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
@@ -104,7 +132,7 @@ public:
     int rows();
     int columns();
 
-    TermChar zeroChar;
+    TermChar zeroChar() const;
 
 signals:
     void cursorPosChanged(QPoint newPos);
@@ -138,9 +166,9 @@ private:
     QQuickView* iWindow;
     Util* iUtil;
 
-    QList<QList<TermChar> > iBuffer;
-    QList<QList<TermChar> > iAltBuffer;
-    QList<QList<TermChar> > iBackBuffer;
+    QList<TermLine> iBuffer;
+    QList<TermLine> iAltBuffer;
+    QList<TermLine> iBackBuffer;
     QList<QList<int> > iTabStops;
 
     QSize iTermSize;
