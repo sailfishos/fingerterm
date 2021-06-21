@@ -3,3 +3,6 @@ Type=Application
 Name=Terminal
 Exec=fingerterm
 Icon=icon-launcher-shell
+
+[X-Sailjail]
+Sandboxing=Disabled
