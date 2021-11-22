@@ -4,7 +4,7 @@ Release: 1
 Summary: A terminal emulator with a custom virtual keyboard
 License: GPLv2
 Source0: %{name}-%{version}.tar.gz
-URL:     https://git.sailfishos.org/mer-core/fingerterm
+URL:     https://github.com/sailfishos/fingerterm/
 BuildRequires: pkgconfig(Qt5Core)
 BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
@@ -14,9 +14,6 @@ BuildRequires: pkgconfig(nemonotifications-qt5) >= 1.0.4
 BuildRequires: qt5-qttools-linguist
 Requires: qt5-qtdeclarative-import-xmllistmodel
 Requires: qt5-qtdeclarative-import-window2
-#Requires:  %{name}-all-translations
-Obsoletes: meego-terminal <= 0.2.2
-Provides: meego-terminal > 0.2.2
 
 %description
 %{summary}.
@@ -29,6 +26,7 @@ Translation source for %{name}
 
 %files
 %defattr(-,root,root,-)
+%license COPYING
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
 %{_datadir}/translations/%{name}_eng_en.qm
