@@ -788,6 +788,17 @@ void Terminal::ansiSequence(const QString& seq)
         }
         break;
 
+    case 'Z': // back tab
+        if(cursorPos().y() > 0) {
+            for(int i=iTabStops[cursorPos().y()-1].count()-1; i>0; i--) {
+                if(iTabStops[cursorPos().y()-1][i] < cursorPos().x()) {
+                    setCursorPos(QPoint( iTabStops[cursorPos().y()-1][i], cursorPos().y() ));
+                    break;
+                }
+            }
+        }
+        break;
+
     case 'c': // vt100 identification
         if(params.count()==0)
             params.append(0);
