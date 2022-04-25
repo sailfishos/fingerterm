@@ -119,10 +119,8 @@ Item {
             Keyboard {
                 id: vkb
 
-                property bool visibleSetting: true
-
                 y: parent.height-vkb.height
-                visible: page.activeFocus && visibleSetting
+                visible: page.activeFocus && util.keyboardMode !== Util.KeyboardOff
             }
 
             // area that handles gestures/select/scroll modes and vkb-keypresses
@@ -239,7 +237,7 @@ Item {
                 property int duration
                 property int cutAfter: height
 
-                height: parent.height
+                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0)
                 width: parent.width
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
@@ -342,7 +340,7 @@ Item {
 
             function wakeVKB()
             {
-                if(!vkb.visibleSetting)
+                if (util.keyboardMode == Util.KeyboardOff)
                     return;
 
                 textrender.duration = window.fadeOutTime;
@@ -366,7 +364,7 @@ Item {
 
             function updateVKB()
             {
-                if(!vkb.visibleSetting)
+                if (util.keyboardMode == Util.KeyboardOff)
                     return;
 
                 textrender.duration = 0;
@@ -394,18 +392,11 @@ Item {
 
             function setTextRenderAttributes()
             {
-                var solidKeyboard = (util.keyboardMode === Util.KeyboardMove)
-                        || (util.keyboardMode === Util.KeyboardFixed)
+                vkb.active |= (util.keyboardMode === Util.KeyboardFixed)
 
-                if (solidKeyboard)
-                {
-                    vkb.active |= (util.keyboardMode === Util.KeyboardFixed);
-                    vkb.visibleSetting = true;
+                if (util.keyboardMode === Util.KeyboardMove) {
                     _applyKeyboardOffset()
-                }
-                else
-                {
-                    vkb.visibleSetting = (util.keyboardMode === Util.KeyboardFade);
+                } else {
                     textrender.y = 0;
                     textrender.cutAfter = textrender.height;
                 }
