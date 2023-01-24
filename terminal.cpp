@@ -1111,8 +1111,9 @@ void Terminal::escControlChar(const QString& seq)
         while(iTabStops.size() < cursorPos().y())
             iTabStops.append(QList<int>());
 
-        iTabStops[cursorPos().y()-1].append(cursorPos().x());
-        qSort(iTabStops[cursorPos().y()-1]);
+        QList<int> &tabStopItem = iTabStops[cursorPos().y() - 1];
+        tabStopItem.append(cursorPos().x());
+        std::sort(tabStopItem.begin(), tabStopItem.end());
     }
     else if(ch.toLatin1()=='D') {  // cursor down/scroll down one line
         scrollFwd(1, cursorPos().y());
