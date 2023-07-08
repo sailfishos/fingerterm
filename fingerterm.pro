@@ -92,7 +92,10 @@ desktopfile.files = $${TARGET}.desktop
 TS_FILE = $$OUT_PWD/fingerterm.ts
 EE_QM = $$OUT_PWD/fingerterm_eng_en.qm
 
-ts.commands += lupdate $$PWD -ts $$TS_FILE
+LUPDATE = $$[QT_INSTALL_BINS]/lupdate
+LRELEASE = $$[QT_INSTALL_BINS]/lrelease
+
+ts.commands += $${LUPDATE} $$PWD -ts $$TS_FILE
 ts.CONFIG += no_check_exist
 ts.output = $$TS_FILE
 ts.input = .
@@ -102,7 +105,7 @@ ts_install.path = /usr/share/translations/source
 ts_install.CONFIG += no_check_exist
 
 # should add -markuntranslated "-" when proper translations are in place (or for testing)
-engineering_english.commands += lrelease -idbased $$TS_FILE -qm $$EE_QM
+engineering_english.commands += $${LRELEASE} -idbased $$TS_FILE -qm $$EE_QM
 engineering_english.CONFIG += no_check_exist
 engineering_english.depends = ts
 engineering_english.input = $$TS_FILE
