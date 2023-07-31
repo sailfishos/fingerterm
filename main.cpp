@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
     app.installTranslator(engineeringEnglish.data());
     app.installTranslator(translator.data());
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QScreen* sc = app.primaryScreen();
     if(sc){
         QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
         }
         sc->setOrientationUpdateMask(mask);
     }
+#endif
 
     qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");
     qmlRegisterUncreatableType<Util>("FingerTerm", 1, 0, "Util", "Util is created by app");
