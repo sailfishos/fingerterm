@@ -18,7 +18,7 @@
 */
 
 import QtQuick 2.0
-import QtQuick.XmlListModel 2.0
+import QtQml.XmlListModel
 import FingerTerm 1.0
 
 Item {
@@ -62,12 +62,12 @@ Item {
 
         XmlListModel {
             id: xmlModel
-            xml: term.getUserMenuXml()
+            source: term.getUserMenuXmlPath()
             query: "/userMenu/item"
 
-            XmlRole { name: "title"; query: "title/string()" }
-            XmlRole { name: "command"; query: "command/string()" }
-            XmlRole { name: "disableOn"; query: "disableOn/string()" }
+            XmlListModelRole { name: "title"; elementName: "title" }
+            XmlListModelRole { name: "command"; elementName: "command" }
+            XmlListModelRole { name: "disableOn"; elementName: "disableOn" }
         }
 
         Component {

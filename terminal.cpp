@@ -1355,6 +1355,11 @@ const QStringList Terminal::grabURLsFromBuffer()
     return ret;
 }
 
+QString Terminal::getUserMenuXmlPath()
+{
+    return iUtil->configPath()+"/menu.xml";
+}
+
 QString Terminal::getUserMenuXml()
 {
     if(!iUtil)
