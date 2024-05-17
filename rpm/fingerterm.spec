@@ -10,7 +10,6 @@ BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
 BuildRequires: pkgconfig(Qt5Quick)
 BuildRequires: pkgconfig(Qt0Feedback)
-BuildRequires: pkgconfig(nemonotifications-qt5) >= 1.0.4
 BuildRequires: qt5-qttools-linguist
 Requires: qt5-qtdeclarative-import-xmllistmodel
 Requires: qt5-qtdeclarative-import-window2
@@ -28,7 +27,7 @@ Translation source for %{name}
 %setup -q -n %{name}-%{version}
 
 %build
-qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
+qmake -qt=5 CONFIG+=enable-feedback DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
 %make_build
 
 %install
