@@ -384,14 +384,21 @@ void TextRender::handleScrollBack(bool reset)
 
 void TextRender::setFontPointSize(int psize)
 {
-    if (iFont.pointSize() != psize)
-    {
+    if (iFont.pointSize() != psize) {
         iFont.setPointSize(psize);
         QFontMetrics fontMetrics(iFont);
         iFontHeight = fontMetrics.height();
         iFontWidth = fontMetrics.maxWidth();
         iFontDescent = fontMetrics.descent();
         emit fontSizeChanged();
+    }
+}
+
+void TextRender::setShowBufferScrollIndicator(bool show)
+{
+    if (iShowBufferScrollIndicator != show) {
+        iShowBufferScrollIndicator = show;
+        emit showBufferScrollIndicatorChanged();
     }
 }
 

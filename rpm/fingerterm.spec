@@ -10,10 +10,10 @@ BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
 BuildRequires: pkgconfig(Qt5Quick)
 BuildRequires: pkgconfig(Qt0Feedback)
-BuildRequires: pkgconfig(nemonotifications-qt5) >= 1.0.4
 BuildRequires: qt5-qttools-linguist
 Requires: qt5-qtdeclarative-import-xmllistmodel
 Requires: qt5-qtdeclarative-import-window2
+Requires: nemo-qml-plugin-configuration-qt5
 
 %description
 %{summary}.
@@ -24,8 +24,17 @@ Summary:   Translation source for %{name}
 %description ts-devel
 Translation source for %{name}
 
+%prep
+%setup -q -n %{name}-%{version}
+
+%build
+qmake -qt=5 CONFIG+=enable-feedback DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
+%make_build
+
+%install
+%qmake5_install
+
 %files
-%defattr(-,root,root,-)
 %license COPYING
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
@@ -33,16 +42,4 @@ Translation source for %{name}
 %{_datadir}/%{name}
 
 %files ts-devel
-%defattr(-,root,root,-)
 %{_datadir}/translations/source/%{name}.ts
-
-%prep
-%setup -q -n %{name}-%{version}
-
-%build
-qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
-make %{?_smp_mflags}
-
-%install
-rm -rf %{buildroot}
-make INSTALL_ROOT=%{buildroot} install

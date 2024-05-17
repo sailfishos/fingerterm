@@ -23,7 +23,7 @@ Text {
     width: window.buttonWidthLarge - 2*window.paddingSmall
     height: Math.max(window.headerHeight, implicitHeight) + 2*window.paddingSmall
     color: "#ffffff"
-    font.pointSize: window.uiFontSize-1
+    font.pointSize: window.uiFontSize - 1
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     wrapMode: Text.Wrap

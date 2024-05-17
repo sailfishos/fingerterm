@@ -42,13 +42,34 @@ Item {
                                                                                           : Qt.PortraitOrientation
         property bool portrait: rotation % 180 == 0
 
+        property QtObject _cornerConfig
+        Component.onCompleted: {
+            // avoid hard dependency to nemo configuration and silica
+            _cornerConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/rounded_corners' } ",
+                                               page, 'ConfigurationValue')
+        }
+        property int cornerRounding: {
+            var biggest = 0
+            if (_cornerConfig) {
+                // simple reading of just the biggest corner, assumed detached by full length from edges
+                for (var i = 0; i < _cornerConfig.value.length; i++) {
+                    var configItem = _cornerConfig.value[i]
+                    if (configItem.length == 3) {
+                        biggest = Math.max(biggest, configItem[2])
+                    }
+                }
+            }
+
+            return biggest
+        }
+
         width: portrait ? root.width : root.height
         height: portrait ? root.height : root.width
         anchors.centerIn: parent
         rotation: Screen.angleBetween(orientation, Screen.primaryOrientation)
         focus: true
         Keys.onPressed: {
-            term.keyPress(event.key,event.modifiers,event.text);
+            term.keyPress(event.key, event.modifiers, event.text)
         }
 
         Rectangle {
@@ -93,13 +114,14 @@ Item {
             Connections {
                 target: util
                 onKeyboardModeChanged: {
-                    window.setTextRenderAttributes();
-                    window.updateVKB();
+                    window.setTextRenderAttributes()
+                    window.updateVKB()
                 }
             }
 
             Rectangle {
                 id: bellTimerRect
+
                 visible: opacity > 0
                 opacity: bellTimer.running ? 0.5 : 0.0
                 anchors.fill: parent
@@ -113,19 +135,25 @@ Item {
 
             Lineview {
                 id: lineView
+
+                topMargin: page.portrait ? page.cornerRounding : 0
+                horizontalMargin: page.portrait ? 0 : page.cornerRounding
                 show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
             }
 
             Keyboard {
                 id: vkb
 
-                y: parent.height-vkb.height
+                y: parent.height - vkb.height
+                horizontalMargin: Math.max(util.keyboardMargins, !page.portrait ? page.cornerRounding : 0)
+                bottomMargin: Math.max(util.keyboardMargins, page.portrait ? page.cornerRounding : 0)
                 visible: page.activeFocus && util.keyboardMode !== Util.KeyboardOff
             }
 
             // area that handles gestures/select/scroll modes and vkb-keypresses
             MultiPointTouchArea {
                 id: multiTouchArea
+
                 anchors.fill: parent
 
                 property int firstTouchId: -1
@@ -133,36 +161,36 @@ Item {
 
                 onPressed: {
                     touchPoints.forEach(function (touchPoint) {
-                        var key = vkb.keyAt(touchPoint.x, touchPoint.y);
+                        var key = vkb.keyAt(touchPoint.x, touchPoint.y)
                         if ((key == null) || (!vkb.active)) {
                             if (multiTouchArea.firstTouchId == -1) {
-                                multiTouchArea.firstTouchId = touchPoint.pointId;
+                                multiTouchArea.firstTouchId = touchPoint.pointId
 
                                 //gestures c++ handler
-                                textrender.mousePress(touchPoint.x, touchPoint.y - textrender.y);
+                                textrender.mousePress(touchPoint.x, touchPoint.y - textrender.y)
                             }
                         }
 
                         if (key != null) {
-                            key.handlePress(multiTouchArea, touchPoint.x, touchPoint.y);
+                            key.handlePress(multiTouchArea, touchPoint.x, touchPoint.y)
                         }
-                        multiTouchArea.pressedKeys[touchPoint.pointId] = key;
-                    });
+                        multiTouchArea.pressedKeys[touchPoint.pointId] = key
+                    })
                 }
                 onUpdated: {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
                             //gestures c++ handler
-                            textrender.mouseMove(touchPoint.x, touchPoint.y - textrender.y);
+                            textrender.mouseMove(touchPoint.x, touchPoint.y - textrender.y)
                         }
 
-                        var key = multiTouchArea.pressedKeys[touchPoint.pointId];
+                        var key = multiTouchArea.pressedKeys[touchPoint.pointId]
                         if (key != null) {
                             if (!key.handleMove(multiTouchArea, touchPoint.x, touchPoint.y)) {
-                                delete multiTouchArea.pressedKeys[touchPoint.pointId];
+                                delete multiTouchArea.pressedKeys[touchPoint.pointId]
                             }
                         }
-                    });
+                    })
                 }
                 onReleased: {
                     touchPoints.forEach(function (touchPoint) {
@@ -170,28 +198,28 @@ Item {
                             // Toggle keyboard wake-up when tapping outside the keyboard, but:
                             //   - only when not scrolling (y-diff < 20 pixels)
                             //   - not in select mode, as it would be hard to select text
-                            if (touchPoint.y < vkb.y && touchPoint.startY < vkb.y &&
-                                    Math.abs(touchPoint.y - touchPoint.startY) < 20 &&
-                                    util.dragMode !== Util.DragSelect &&
-                                    util.keyboardMode != Util.KeyboardFixed) {
+                            if (touchPoint.y < vkb.y && touchPoint.startY < vkb.y
+                                    && Math.abs(touchPoint.y - touchPoint.startY) < 20
+                                    && util.dragMode !== Util.DragSelect
+                                    && util.keyboardMode != Util.KeyboardFixed) {
                                 if (vkb.active) {
-                                    window.sleepVKB();
+                                    window.sleepVKB()
                                 } else {
-                                    window.wakeVKB();
+                                    window.wakeVKB()
                                 }
                             }
 
                             //gestures c++ handler
-                            textrender.mouseRelease(touchPoint.x, touchPoint.y - textrender.y);
-                            multiTouchArea.firstTouchId = -1;
+                            textrender.mouseRelease(touchPoint.x, touchPoint.y - textrender.y)
+                            multiTouchArea.firstTouchId = -1
                         }
 
-                        var key = multiTouchArea.pressedKeys[touchPoint.pointId];
+                        var key = multiTouchArea.pressedKeys[touchPoint.pointId]
                         if (key != null) {
-                            key.handleRelease(multiTouchArea, touchPoint.x, touchPoint.y);
+                            key.handleRelease(multiTouchArea, touchPoint.x, touchPoint.y)
                         }
-                        delete multiTouchArea.pressedKeys[touchPoint.pointId];
-                    });
+                        delete multiTouchArea.pressedKeys[touchPoint.pointId]
+                    })
                 }
             }
 
@@ -236,9 +264,12 @@ Item {
 
                 property int duration
                 property int cutAfter: height
+                property int baseY: page.portrait ? page.cornerRounding : 0
 
-                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0)
-                width: parent.width
+                y: baseY
+                x: !page.portrait ? page.cornerRounding : 0
+                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0) - 2*baseY
+                width: parent.width - 2*x
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
@@ -256,7 +287,7 @@ Item {
                 onCutAfterChanged: {
                     // this property is used in the paint function, to make sure that the element gets
                     // painted with the updated value (might not otherwise happen because of caching)
-                    textrender.redraw();
+                    textrender.redraw()
                 }
             }
 
@@ -266,7 +297,7 @@ Item {
                 interval: util.keyboardFadeOutDelay
                 onTriggered: {
                     if (util.keyboardMode != Util.KeyboardFixed) {
-                        window.sleepVKB();
+                        window.sleepVKB()
                     }
                 }
             }
@@ -280,11 +311,11 @@ Item {
                 target: util
                 onVisualBell: bellTimer.start()
                 onNotify: {
-                    textNotify.text = msg;
-                    textNotifyAnim.enabled = false;
-                    textNotify.opacity = 1.0;
-                    textNotifyAnim.enabled = true;
-                    textNotify.opacity = 0;
+                    textNotify.text = msg
+                    textNotifyAnim.enabled = false
+                    textNotify.opacity = 1.0
+                    textNotifyAnim.enabled = true
+                    textNotify.opacity = 0
                 }
             }
 
@@ -308,7 +339,7 @@ Item {
 
                 Behavior on opacity {
                     id: textNotifyAnim
-                    NumberAnimation { duration: 500; }
+                    NumberAnimation { duration: 500 }
                 }
             }
 
@@ -334,81 +365,75 @@ Item {
             }
 
             function vkbKeypress(key,modifiers) {
-                wakeVKB();
-                term.keyPress(key,modifiers);
+                wakeVKB()
+                term.keyPress(key, modifiers)
             }
 
-            function wakeVKB()
-            {
+            function wakeVKB() {
                 if (util.keyboardMode == Util.KeyboardOff)
-                    return;
+                    return
 
-                textrender.duration = window.fadeOutTime;
-                fadeTimer.restart();
-                vkb.active = true;
-                setTextRenderAttributes();
+                textrender.duration = window.fadeOutTime
+                fadeTimer.restart()
+                vkb.active = true
+                setTextRenderAttributes()
                 // FIXME: This "duration = 0" hack prevents the animations running at
                 // other times (e.g. on screen rotation). It should be using States.
-                textrender.duration = 0;
+                textrender.duration = 0
             }
 
-            function sleepVKB()
-            {
-                textrender.duration = window.fadeInTime;
-                vkb.active = false;
-                setTextRenderAttributes();
+            function sleepVKB() {
+                textrender.duration = window.fadeInTime
+                vkb.active = false
+                setTextRenderAttributes()
                 // FIXME: This "duration = 0" hack prevents the animations running at
                 // other times (e.g. on screen rotation). It should be using States.
-                textrender.duration = 0;
+                textrender.duration = 0
             }
 
-            function updateVKB()
-            {
+            function updateVKB() {
                 if (util.keyboardMode == Util.KeyboardOff)
-                    return;
+                    return
 
-                textrender.duration = 0;
-                fadeTimer.restart();
-                setTextRenderAttributes();
+                textrender.duration = 0
+                fadeTimer.restart()
+                setTextRenderAttributes()
             }
 
-            function _applyKeyboardOffset()
-            {
-                if(vkb.active) {
+            function _applyKeyboardOffset() {
+                if (vkb.active) {
                     var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
                             + textrender.fontHeight*util.extraLinesFromCursor
                     if (move < vkb.y) {
-                        textrender.y = 0;
-                        textrender.cutAfter = vkb.y;
+                        textrender.y = textrender.baseY
+                        textrender.cutAfter = vkb.y
                     } else {
-                        textrender.y = 0 - move + vkb.y
-                        textrender.cutAfter = move;
+                        textrender.y = textrender.baseY - move + vkb.y
+                        textrender.cutAfter = move
                     }
                 } else {
-                    textrender.y = 0;
-                    textrender.cutAfter = textrender.height;
+                    textrender.y = textrender.baseY
+                    textrender.cutAfter = textrender.height
                 }
             }
 
-            function setTextRenderAttributes()
-            {
+            function setTextRenderAttributes() {
                 vkb.active |= (util.keyboardMode === Util.KeyboardFixed)
 
                 if (util.keyboardMode === Util.KeyboardMove) {
                     _applyKeyboardOffset()
                 } else {
-                    textrender.y = 0;
-                    textrender.cutAfter = textrender.height;
+                    textrender.y = textrender.baseY
+                    textrender.cutAfter = textrender.height
                 }
             }
 
-            function displayBufferChanged()
-            {
-                lineView.lines = term.printableLinesFromCursor(util.extraLinesFromCursor);
-                lineView.cursorX = textrender.cursorPixelPos().x;
-                lineView.cursorWidth = textrender.cursorPixelSize().width;
-                lineView.cursorHeight = textrender.cursorPixelSize().height;
-                setTextRenderAttributes();
+            function displayBufferChanged() {
+                lineView.lines = term.printableLinesFromCursor(util.extraLinesFromCursor)
+                lineView.cursorX = textrender.cursorPixelPos().x
+                lineView.cursorWidth = textrender.cursorPixelSize().width
+                lineView.cursorHeight = textrender.cursorPixelSize().height
+                setTextRenderAttributes()
             }
 
             Component.onCompleted: {
@@ -421,7 +446,7 @@ Item {
 
             function showErrorMessage(string)
             {
-                errorDialog.text = "<font size=\"+2\">" + string + "</font>";
+                errorDialog.text = "<font size=\"+2\">" + string + "</font>"
                 errorDialog.show = true
             }
         }
