@@ -24,8 +24,17 @@ Summary:   Translation source for %{name}
 %description ts-devel
 Translation source for %{name}
 
+%prep
+%setup -q -n %{name}-%{version}
+
+%build
+qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
+%make_build
+
+%install
+%qmake5_install
+
 %files
-%defattr(-,root,root,-)
 %license COPYING
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
@@ -33,16 +42,4 @@ Translation source for %{name}
 %{_datadir}/%{name}
 
 %files ts-devel
-%defattr(-,root,root,-)
 %{_datadir}/translations/source/%{name}.ts
-
-%prep
-%setup -q -n %{name}-%{version}
-
-%build
-qmake -qt=5 CONFIG+=enable-feedback CONFIG+=enable-nemonotifications DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
-make %{?_smp_mflags}
-
-%install
-rm -rf %{buildroot}
-make INSTALL_ROOT=%{buildroot} install
