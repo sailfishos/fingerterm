@@ -30,13 +30,16 @@ Rectangle {
     property int cursorHeight: 10
     property int extraLines: util.extraLinesFromCursor
     property bool show
+    property int topMargin
+    property int horizontalMargin
 
-    y: show ? 0 : -(height+window.paddingSmall)
+    x: horizontalMargin
+    y: show ? topMargin : -(height + window.paddingSmall)
     color: "#404040"
     border.width: 2
     border.color: "#909090"
     radius: window.radiusSmall
-    width: parent.width
+    width: parent.width - 2*horizontalMargin
     height: lineTextCol.height + 8*window.pixelRatio
 
     Text {

@@ -84,8 +84,8 @@ Item {
         }
 
         Rectangle {
-            y: menuFlickArea.visibleArea.yPosition*menuFlickArea.height + window.scrollBarWidth
-            x: parent.width-window.paddingMedium
+            y: page.cornerRounding + menuFlickArea.visibleArea.yPosition * menuFlickArea.height + window.scrollBarWidth
+            x: parent.width - window.paddingMedium
             width: window.scrollBarWidth
             height: menuFlickArea.visibleArea.heightRatio*menuFlickArea.height
             radius: 3*window.pixelRatio
@@ -96,8 +96,8 @@ Item {
             id: menuFlickArea
 
             anchors.fill: parent
-            anchors.topMargin: window.scrollBarWidth
-            anchors.bottomMargin: window.scrollBarWidth
+            anchors.topMargin: window.scrollBarWidth + page.cornerRounding
+            anchors.bottomMargin: window.scrollBarWidth + page.cornerRounding
             anchors.leftMargin: window.scrollBarWidth
             anchors.rightMargin: 16*window.pixelRatio
             contentHeight: flickableContent.height

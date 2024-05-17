@@ -13,6 +13,7 @@ BuildRequires: pkgconfig(Qt0Feedback)
 BuildRequires: qt5-qttools-linguist
 Requires: qt5-qtdeclarative-import-xmllistmodel
 Requires: qt5-qtdeclarative-import-window2
+Requires: nemo-qml-plugin-configuration-qt5
 
 %description
 %{summary}.

@@ -42,6 +42,27 @@ Item {
                                                                                           : Qt.PortraitOrientation
         property bool portrait: rotation % 180 == 0
 
+        property QtObject _cornerConfig
+        Component.onCompleted: {
+            // avoid hard dependency to nemo configuration and silica
+            _cornerConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/rounded_corners' } ",
+                                               page, 'ConfigurationValue')
+        }
+        property int cornerRounding: {
+            var biggest = 0
+            if (_cornerConfig) {
+                // simple reading of just the biggest corner, assumed detached by full length from edges
+                for (var i = 0; i < _cornerConfig.value.length; i++) {
+                    var configItem = _cornerConfig.value[i]
+                    if (configItem.length == 3) {
+                        biggest = Math.max(biggest, configItem[2])
+                    }
+                }
+            }
+
+            return biggest
+        }
+
         width: portrait ? root.width : root.height
         height: portrait ? root.height : root.width
         anchors.centerIn: parent
@@ -113,13 +134,18 @@ Item {
 
             Lineview {
                 id: lineView
+
+                topMargin: page.portrait ? page.cornerRounding : 0
+                horizontalMargin: page.portrait ? 0 : page.cornerRounding
                 show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
             }
 
             Keyboard {
                 id: vkb
 
-                y: parent.height-vkb.height
+                y: parent.height - vkb.height
+                horizontalMargin: Math.max(util.keyboardMargins, !page.portrait ? page.cornerRounding : 0)
+                bottomMargin: Math.max(util.keyboardMargins, page.portrait ? page.cornerRounding : 0)
                 visible: page.activeFocus && util.keyboardMode !== Util.KeyboardOff
             }
 
@@ -236,9 +262,12 @@ Item {
 
                 property int duration
                 property int cutAfter: height
+                property int baseY: page.portrait ? page.cornerRounding : 0
 
-                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0)
-                width: parent.width
+                y: baseY
+                x: !page.portrait ? page.cornerRounding : 0
+                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0) - 2*baseY
+                width: parent.width - 2*x
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
@@ -378,15 +407,15 @@ Item {
                     var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
                             + textrender.fontHeight*util.extraLinesFromCursor
                     if (move < vkb.y) {
-                        textrender.y = 0;
-                        textrender.cutAfter = vkb.y;
+                        textrender.y = textrender.baseY
+                        textrender.cutAfter = vkb.y
                     } else {
-                        textrender.y = 0 - move + vkb.y
+                        textrender.y = textrender.baseY - move + vkb.y
                         textrender.cutAfter = move;
                     }
                 } else {
-                    textrender.y = 0;
-                    textrender.cutAfter = textrender.height;
+                    textrender.y = textrender.baseY
+                    textrender.cutAfter = textrender.height
                 }
             }
 
@@ -397,8 +426,8 @@ Item {
                 if (util.keyboardMode === Util.KeyboardMove) {
                     _applyKeyboardOffset()
                 } else {
-                    textrender.y = 0;
-                    textrender.cutAfter = textrender.height;
+                    textrender.y = textrender.baseY
+                    textrender.cutAfter = textrender.height
                 }
             }
 

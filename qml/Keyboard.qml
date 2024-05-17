@@ -36,13 +36,14 @@ Item {
 
     property bool active
 
-    property int outmargins: util.keyboardMargins
+    property int horizontalMargin: util.keyboardMargins
+    property int bottomMargin: util.keyboardMargins
     property int keyspacing: 6
     property int keysPerRow: keyLoader.vkbColumns
-    property real keywidth: (keyboard.width - keyspacing*keysPerRow - outmargins*2)/keysPerRow;
+    property real keywidth: (keyboard.width - keyspacing*keysPerRow - horizontalMargin*2) / keysPerRow
 
     width: parent.width
-    height: keyboardLoader.height + outmargins
+    height: keyboardLoader.height + bottomMargin
 
     Component {
         id: keyboardContents
