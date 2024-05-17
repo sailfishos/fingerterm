@@ -51,7 +51,7 @@ Item {
         Column {
             id: col
 
-            x: (keyboard.width-width)/2
+            x: (keyboard.width - width) / 2
             spacing: keyboard.keyspacing
 
             Repeater {
@@ -71,7 +71,7 @@ Item {
                             code: keydata[1]
                             label_alt: keydata[2]
                             code_alt: keydata[3]
-                            width: keyboard.keywidth * keydata[4] + ((keydata[4]-1)*keyboard.keyspacing) + 1
+                            width: keyboard.keywidth * keydata[4] + ((keydata[4] - 1) * keyboard.keyspacing) + 1
                             sticky: keydata[5]
                         }
                     }
@@ -85,7 +85,7 @@ Item {
     }
 
     Component.onCompleted: {
-        keyboardLoader.sourceComponent = keyboardContents;
+        keyboardLoader.sourceComponent = keyboardContents
     }
 
     Rectangle {
@@ -117,8 +117,8 @@ Item {
                 visualKeyFeedbackRect.label = _key.currentLabel
                 visualKeyFeedbackRect.width = _key.width * 1.5
                 visualKeyFeedbackRect.height = _key.height * 1.5
-                var mappedCoord = keyboard.mapFromItem(_key, 0, 0);
-                visualKeyFeedbackRect.x = mappedCoord.x - (visualKeyFeedbackRect.width-_key.width)/2
+                var mappedCoord = keyboard.mapFromItem(_key, 0, 0)
+                visualKeyFeedbackRect.x = mappedCoord.x - (visualKeyFeedbackRect.width - _key.width) / 2
                 visualKeyFeedbackRect.y = mappedCoord.y - _key.height*1.5
                 visualFeedbackDelay.restart()
             }
@@ -131,12 +131,13 @@ Item {
             var ret = keyLoader.loadLayout(util.keyboardLayout)
             if (!ret) {
                 //% "There was an error loading the keyboard layout. Using the default one instead."
-                showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"));
+                showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"))
                 util.keyboardLayout = "english"
-                ret = keyLoader.loadLayout(":/data/english.layout"); //try the default as a fallback (load from resources to ensure it will succeed)
+                //try the default as a fallback (load from resources to ensure it will succeed)
+                ret = keyLoader.loadLayout(":/data/english.layout")
                 if (!ret) {
-                    console.log("keyboard layout fail");
-                    Qt.quit();
+                    console.log("keyboard layout fail")
+                    Qt.quit()
                 }
             }
             keyboard.keyModifiers = 0

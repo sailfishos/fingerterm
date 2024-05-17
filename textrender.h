@@ -29,16 +29,16 @@ class Util;
 
 class TextRender : public QQuickPaintedItem
 {
+    Q_OBJECT
     Q_PROPERTY(int fontWidth READ fontWidth NOTIFY fontSizeChanged)
     Q_PROPERTY(int fontHeight READ fontHeight NOTIFY fontSizeChanged)
     Q_PROPERTY(int fontPointSize READ fontPointSize WRITE setFontPointSize NOTIFY fontSizeChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
     Q_PROPERTY(bool allowGestures READ allowGestures WRITE setAllowGestures NOTIFY allowGesturesChanged)
-
-    Q_OBJECT
 public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
+
     void paint(QPainter*);
 
     static void setUtil(Util *util);
@@ -50,7 +50,7 @@ public:
     int fontPointSize() { return iFont.pointSize(); }
     void setFontPointSize(int psize);
     bool showBufferScrollIndicator() { return iShowBufferScrollIndicator; }
-    void setShowBufferScrollIndicator(bool s) { if(iShowBufferScrollIndicator!=s) { iShowBufferScrollIndicator=s; emit showBufferScrollIndicatorChanged(); } }
+    void setShowBufferScrollIndicator(bool show);
 
     Q_INVOKABLE QPoint cursorPixelPos();
     Q_INVOKABLE QSize cursorPixelSize();

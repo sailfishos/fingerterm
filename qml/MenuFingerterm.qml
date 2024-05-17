@@ -29,8 +29,6 @@ Item {
     visible: rect.x < menuWin.width
 
     Rectangle {
-        id: fader
-
         color: "#000000"
         opacity: menuWin.showing ? 0.5 : 0.0
         anchors.fill: parent
@@ -77,8 +75,8 @@ Item {
                 isShellCommand: true
                 enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
                 onClicked: {
-                    menuWin.showing = false;
-                    term.putString(command, true);
+                    menuWin.showing = false
+                    term.putString(command, true)
                 }
             }
         }
@@ -128,8 +126,8 @@ Item {
                                 //% "Copy"
                                 text: qsTrId("fingerterm-menu_bt_copy")
                                 onClicked: {
-                                    menuWin.showing = false;
-                                    term.copySelectionToClipboard();
+                                    menuWin.showing = false
+                                    term.copySelectionToClipboard()
                                 }
                                 width: window.buttonWidthHalf
                                 minHeight: window.buttonHeightLarge
@@ -139,8 +137,8 @@ Item {
                                 //% "Paste"
                                 text: qsTrId("fingerterm-menu_bt_paste")
                                 onClicked: {
-                                    menuWin.showing = false;
-                                    term.pasteFromClipboard();
+                                    menuWin.showing = false
+                                    term.pasteFromClipboard()
                                 }
                                 width: window.buttonWidthHalf
                                 minHeight: window.buttonHeightLarge
@@ -153,8 +151,8 @@ Item {
                             width: window.buttonWidthLarge
                             minHeight: window.buttonHeightLarge
                             onClicked: {
-                                menuWin.showing = false;
-                                urlWindow.urls = term.grabURLsFromBuffer();
+                                menuWin.showing = false
+                                urlWindow.urls = term.grabURLsFromBuffer()
                                 urlWindow.show = true
                             }
                         }
@@ -177,7 +175,7 @@ Item {
                                         text: "<font size=\"+3\">+</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize + window.pixelRatio
-                                            util.notifyText(term.columns + "×" + term.rows);
+                                            util.notifyText(term.columns + "×" + term.rows)
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -186,7 +184,7 @@ Item {
                                         text: "<font size=\"+3\">-</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize - window.pixelRatio
-                                            util.notifyText(term.columns + "×" + term.rows);
+                                            util.notifyText(term.columns + "×" + term.rows)
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -268,8 +266,8 @@ Item {
                                         highlighted: util.dragMode == Util.DragGestures
                                         onClicked: {
                                             util.dragMode = Util.DragGestures
-                                            term.clearSelection();
-                                            menuWin.showing = false;
+                                            term.clearSelection()
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthSmall
                                         minHeight: window.buttonHeightSmall
@@ -282,8 +280,8 @@ Item {
                                         highlighted: util.dragMode == Util.DragScroll
                                         onClicked: {
                                             util.dragMode = Util.DragScroll
-                                            term.clearSelection();
-                                            menuWin.showing = false;
+                                            term.clearSelection()
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthSmall
                                         minHeight: window.buttonHeightSmall
@@ -296,7 +294,7 @@ Item {
                                         highlighted: util.dragMode == Util.DragSelect
                                         onClicked: {
                                             util.dragMode = Util.DragSelect
-                                            menuWin.showing = false;
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthSmall
                                         minHeight: window.buttonHeightSmall
@@ -327,7 +325,7 @@ Item {
                                         highlighted: util.keyboardMode == Util.KeyboardFixed
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardFixed
-                                            menuWin.showing = false;
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -339,7 +337,7 @@ Item {
                                         highlighted: util.keyboardMode == Util.KeyboardOff
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardOff
-                                            menuWin.showing = false;
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -353,7 +351,7 @@ Item {
                                         highlighted: util.keyboardMode == Util.KeyboardFade
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardFade
-                                            menuWin.showing = false;
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -365,7 +363,7 @@ Item {
                                         highlighted: util.keyboardMode == Util.KeyboardMove
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardMove
-                                            menuWin.showing = false;
+                                            menuWin.showing = false
                                         }
                                         width: window.buttonWidthHalf
                                         minHeight: window.buttonHeightSmall
@@ -377,8 +375,8 @@ Item {
                             //% "New window"
                             text: qsTrId("fingerterm-menu_bt_new-window")
                             onClicked: {
-                                menuWin.showing = false;
-                                util.openNewWindow();
+                                menuWin.showing = false
+                                util.openNewWindow()
                             }
                         }
                         Button {
@@ -386,8 +384,8 @@ Item {
                             //% "VKB layout"
                             text: qsTrId("fingerterm-menu_bt_virtual-keyboard-layout")
                             onClicked: {
-                                menuWin.showing = false;
-                                layoutWindow.layouts = keyLoader.availableLayouts();
+                                menuWin.showing = false
+                                layoutWindow.layouts = keyLoader.availableLayouts()
                                 layoutWindow.show = true
                             }
                         }
@@ -395,7 +393,7 @@ Item {
                             //% "About"
                             text: qsTrId("fingerterm-menu_bt_about")
                             onClicked: {
-                                menuWin.showing = false;
+                                menuWin.showing = false
                                 aboutDialog.show = true
                             }
                         }
@@ -444,7 +442,9 @@ Item {
                                         onXChanged: {
                                             if (vkbDelaySliderMA.drag.active)
                                                 vkbDelaySlider.keyboardFadeOutDelay =
-                                                        Math.floor((1000+vkbDelaySlider.x/vkbDelaySliderMA.drag.maximumX*9000)/250)*250;
+                                                        Math.floor((1000
+                                                                    + vkbDelaySlider.x
+                                                                    / vkbDelaySliderMA.drag.maximumX * 9000) / 250) * 250
                                         }
                                         Component.onCompleted: {
                                             x = (keyboardFadeOutDelay-1000)/9000 * (vkbDelaySliderArea.width - vkbDelaySlider.width)

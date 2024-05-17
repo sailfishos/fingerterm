@@ -54,8 +54,6 @@ public:
 signals:
     void vkbChanged();
 
-public slots:
-
 private:
     Q_DISABLE_COPY(KeyLoader)
     bool loadLayoutInternal(QIODevice &from);
