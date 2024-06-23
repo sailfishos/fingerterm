@@ -325,7 +325,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
 
         if (asciiVal >= 0x41 && asciiVal <= 0x5f) {
             // Turn uppercase characters into their control code equivalent
-            toWrite.append(asciiVal - 0x40);
+            toWrite.append((char)(asciiVal - 0x40));
         } else {
             qWarning() << "Ctrl+" << c << " does not translate into a control code";
         }
@@ -1312,7 +1312,7 @@ const QStringList Terminal::grabURLsFromBuffer()
         for (int i=0; i<iBackBuffer.size(); i++) {
             for (int j=0; j<iBackBuffer[i].size(); j++) {
                 if (iBackBuffer[i][j].c.isPrint())
-                    buf.append(iBackBuffer[i][j].c);
+                    buf.append(iBackBuffer[i][j].c.toLatin1());
                 else if (iBackBuffer[i][j].c == 0)
                     buf.append(' ');
             }
@@ -1325,7 +1325,7 @@ const QStringList Terminal::grabURLsFromBuffer()
     for (int i=0; i<buffer().size(); i++) {
         for (int j=0; j<buffer()[i].size(); j++) {
             if (buffer()[i][j].c.isPrint())
-                buf.append(buffer()[i][j].c);
+                buf.append(buffer()[i][j].c.toLatin1());
             else if (buffer()[i][j].c == 0)
                 buf.append(' ');
         }
@@ -1340,7 +1340,7 @@ const QStringList Terminal::grabURLsFromBuffer()
     foreach(QString prot, lookFor) {
         int ind=0;
         while( ind != -1 ) {
-            ind = buf.indexOf(prot, ind);
+            ind = buf.indexOf(prot.toUtf8(), ind);
             if(ind!=-1) {
                 int ind2 = buf.indexOf(" ",ind);
                 int l=-1;
@@ -1353,6 +1353,11 @@ const QStringList Terminal::grabURLsFromBuffer()
     }
     ret.removeDuplicates();
     return ret;
+}
+
+QString Terminal::getUserMenuXmlPath()
+{
+    return iUtil->configPath()+"/menu.xml";
 }
 
 QString Terminal::getUserMenuXml()

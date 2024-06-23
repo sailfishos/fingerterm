@@ -118,6 +118,7 @@ public:
     Q_INVOKABLE const QStringList grabURLsFromBuffer();
 
     Q_INVOKABLE QString getUserMenuXml();
+    Q_INVOKABLE QString getUserMenuXmlPath();
 
     void scrollBackBufferFwd(int lines);
     void scrollBackBufferBack(int lines);

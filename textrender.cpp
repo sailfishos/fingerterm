@@ -76,7 +76,11 @@ TextRender::TextRender(QQuickItem *parent) :
     iShowBufferScrollIndicator = false;
 
     iFont = QFont(sUtil->fontFamily(), sUtil->fontSize());
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     iFont.setStyleHint(QFont::Monospace, QFont::StyleStrategy(QFont::PreferDefault | QFont::ForceIntegerMetrics));
+#else
+    iFont.setStyleHint(QFont::Monospace, QFont::StyleStrategy(QFont::PreferDefault));
+#endif
     iFont.setBold(false);
     QFontMetrics fontMetrics(iFont);
     iFontHeight = fontMetrics.height();
