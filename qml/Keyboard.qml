@@ -108,6 +108,7 @@ Item {
 
         Text {
             id: label
+
             color: keyBgColor
             font.pointSize: 34*window.pixelRatio
             anchors.centerIn: parent

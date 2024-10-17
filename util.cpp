@@ -107,7 +107,7 @@ void Util::openNewWindow()
 
 QString Util::configPath()
 {
-    if(!iSettings)
+    if (!iSettings)
         return QString();
 
     QFileInfo f(iSettings->fileName());
@@ -116,7 +116,7 @@ QString Util::configPath()
 
 QVariant Util::settingsValue(QString key, const QVariant &defaultValue)
 {
-    if(!iSettings)
+    if (!iSettings)
         return defaultValue;
 
     return iSettings->value(key, defaultValue);
@@ -124,7 +124,7 @@ QVariant Util::settingsValue(QString key, const QVariant &defaultValue)
 
 void Util::setSettingsValue(QString key, QVariant value)
 {
-    if(iSettings)
+    if (iSettings)
         iSettings->setValue(key, value);
 }
 
@@ -165,10 +165,10 @@ void Util::keyPressFeedback()
 
 void Util::bellAlert()
 {
-    if(!iWindow)
+    if (!iWindow)
         return;
 
-    if( settingsValue("general/visualBell", true).toBool() ) {
+    if (settingsValue("general/visualBell", true).toBool()) {
         emit visualBell();
     }
 }

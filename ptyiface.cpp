@@ -39,10 +39,10 @@ static int childProcessPid = 0;
 
 void sighandler(int sig)
 {
-    if(sig==SIGCHLD) {
+    if (sig==SIGCHLD) {
         int pid = wait(NULL);
 
-        if(pid > 0 && childProcessPid > 0 &&  pid==childProcessPid) {
+        if (pid > 0 && childProcessPid > 0 &&  pid==childProcessPid) {
             childProcessQuit = true;
             childProcessPid = 0;
             qApp->quit();
@@ -61,7 +61,7 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
 {
     childProcessPid = iPid;
 
-    if(!iTerm || childProcessQuit) {
+    if (!iTerm || childProcessQuit) {
         iFailed = true;
         qFatal("PtyIFace: null Terminal pointer");
     }
@@ -69,10 +69,10 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
     iTerm->setPtyIFace(this);
 
     resize(iTerm->rows(), iTerm->columns());
-    connect(iTerm,SIGNAL(termSizeChanged(int,int)),this,SLOT(resize(int,int)));
+    connect(iTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(resize(int,int)));
 
     iReadNotifier = new QSocketNotifier(iMasterFd, QSocketNotifier::Read, this);
-    connect(iReadNotifier,SIGNAL(activated(int)),this,SLOT(readActivated()));
+    connect(iReadNotifier, SIGNAL(activated(int)), this, SLOT(readActivated()));
 
     signal(SIGCHLD,&sighandler);
     fcntl(iMasterFd, F_SETFL, O_NONBLOCK); // reads from the descriptor should be non-blocking
@@ -87,7 +87,7 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
 
 PtyIFace::~PtyIFace()
 {
-    if(!childProcessQuit) {
+    if (!childProcessQuit) {
         // make the process quit
         kill(iPid, SIGHUP);
         kill(iPid, SIGTERM);
@@ -100,13 +100,13 @@ void PtyIFace::readActivated()
 {
     QByteArray data;
     readTerm(data);
-    if(iTerm)
-        iTerm->insertInBuffer( iTextCodec->toUnicode(data) );
+    if (iTerm)
+        iTerm->insertInBuffer(iTextCodec->toUnicode(data));
 }
 
 void PtyIFace::resize(int rows, int columns)
 {
-    if(childProcessQuit)
+    if (childProcessQuit)
         return;
 
     winsize winp;
@@ -118,29 +118,29 @@ void PtyIFace::resize(int rows, int columns)
 
 void PtyIFace::writeTerm(const QString &chars)
 {
-    writeTerm( iTextCodec->fromUnicode(chars) );
+    writeTerm(iTextCodec->fromUnicode(chars));
 }
 
 void PtyIFace::writeTerm(const QByteArray &chars)
 {
-    if(childProcessQuit)
+    if (childProcessQuit)
         return;
 
     int ret = write(iMasterFd, chars, chars.size());
-    if(ret != chars.size())
+    if (ret != chars.size())
         qDebug() << "write error!";
 }
 
 void PtyIFace::readTerm(QByteArray &chars)
 {
-    if(childProcessQuit)
+    if (childProcessQuit)
         return;
 
     int ret = 0;
     char ch[64];
     while(ret != -1) {
         ret = read(iMasterFd, &ch, 64);
-        if(ret > 0)
+        if (ret > 0)
             chars.append((char*)&ch, ret);
     }
 }
