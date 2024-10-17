@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
     // fork the child process before creating QGuiApplication
     int socketM;
     int pid = forkpty(&socketM,NULL,NULL,NULL);
-    if( pid==-1 ) {
-        qFatal("forkpty failed");
+    if (pid == -1) {
+        qWarning("forkpty failed");
         exit(1);
     } else if( pid==0 ) {
         setenv("TERM", settings->value("terminal/envVarTERM", "xterm").toByteArray(), 1);
@@ -162,8 +162,10 @@ int main(int argc, char *argv[])
     view.setSource(QUrl::fromLocalFile(QStringLiteral(DEPLOYMENT_PATH) + QDir::separator() + QStringLiteral("Main.qml")));
 
     QObject *root = view.rootObject();
-    if(!root)
-        qFatal("no root object - qml error");
+    if (!root) {
+        qWarning("no root object - qml error, exiting");
+        return 1;
+    }
 
     if (fullscreen) {
         view.showFullScreen();
@@ -173,8 +175,10 @@ int main(int argc, char *argv[])
 
     PtyIFace ptyiface(pid, socketM, &term, util.charset());
 
-    if( ptyiface.failed() )
-        qFatal("pty failure");
+    if (ptyiface.failed()) {
+        qWarning("pty failure, exiting");
+        return 1;
+    }
 
     return app.exec();
 }
