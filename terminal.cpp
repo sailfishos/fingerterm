@@ -63,7 +63,7 @@ Terminal::Terminal(QObject *parent) :
 void Terminal::setPtyIFace(PtyIFace *pty)
 {
     iPtyIFace = pty;
-    if(!pty) {
+    if (!pty) {
         qDebug() << "warning: null pty iface";
     }
 }
@@ -82,25 +82,25 @@ TermChar Terminal::zeroChar() const
 
 void Terminal::setCursorPos(QPoint pos)
 {
-    if( iTermAttribs.cursorPos != pos ) {
+    if (iTermAttribs.cursorPos != pos) {
         int tlimit = 1;
         int blimit = iTermSize.height();
-        if(iTermAttribs.originMode) {
+        if (iTermAttribs.originMode) {
             tlimit = iMarginTop;
             blimit = iMarginBottom;
         }
 
-        if(pos.x() < 1)
+        if (pos.x() < 1)
             pos.setX(1);
-        if(pos.x() > iTermSize.width()+1)
-            pos.setX(iTermSize.width()+1);
-        if(pos.y() < tlimit)
+        if (pos.x() > iTermSize.width() + 1)
+            pos.setX(iTermSize.width() + 1);
+        if (pos.y() < tlimit)
             pos.setY(tlimit);
-        if(pos.y() > blimit)
+        if (pos.y() > blimit)
             pos.setY(blimit);
 
-        iTermAttribs.cursorPos=pos;
-        if(iEmitCursorChangeSignal)
+        iTermAttribs.cursorPos = pos;
+        if (iEmitCursorChangeSignal)
             emit cursorPosChanged(pos);
     }
 }
@@ -112,7 +112,7 @@ QPoint Terminal::cursorPos()
 
 bool Terminal::showCursor()
 {
-    if(iBackBufferScrollPos != 0)
+    if (iBackBufferScrollPos != 0)
         return false;
 
     return iShowCursor;
@@ -120,7 +120,7 @@ bool Terminal::showCursor()
 
 QList<TermLine>& Terminal::buffer()
 {
-    if(iUseAltScreenBuffer)
+    if (iUseAltScreenBuffer)
         return iAltBuffer;
 
     return iBuffer;
@@ -128,7 +128,7 @@ QList<TermLine>& Terminal::buffer()
 
 void Terminal::setTermSize(QSize size)
 {
-    if( iTermSize != size ) {
+    if (iTermSize != size) {
         iMarginTop = 1;
         iMarginBottom = size.height();
         iTermSize=size;
@@ -149,33 +149,33 @@ void Terminal::putString(QString str, bool unEscape)
         str.replace("\\t", "\t");
 
         //hex
-        while(str.indexOf("\\x") != -1) {
+        while (str.indexOf("\\x") != -1) {
             int i = str.indexOf("\\x")+2;
             QString num;
-            while(num.length() < 2 && str.length()>i && charIsHexDigit(str.at(i))) {
+            while (num.length() < 2 && str.length() > i && charIsHexDigit(str.at(i))) {
                 num.append(str.at(i));
                 i++;
             }
-            str.remove(i-2-num.length(), num.length()+2);
+            str.remove(i - 2 - num.length(), num.length() + 2);
             bool ok;
-            str.insert(i-2-num.length(), QChar(num.toInt(&ok,16)));
+            str.insert(i - 2 - num.length(), QChar(num.toInt(&ok, 16)));
         }
         //octal
-        while(str.indexOf("\\0") != -1) {
-            int i = str.indexOf("\\0")+2;
+        while (str.indexOf("\\0") != -1) {
+            int i = str.indexOf("\\0") + 2;
             QString num;
-            while(num.length() < 3 && str.length()>i &&
-                  (str.at(i).toLatin1() >= 48 && str.at(i).toLatin1() <= 55)) { //accept only 0-7
+            while(num.length() < 3 && str.length()>i
+                  && (str.at(i).toLatin1() >= 48 && str.at(i).toLatin1() <= 55)) { //accept only 0-7
                 num.append(str.at(i));
                 i++;
             }
-            str.remove(i-2-num.length(), num.length()+2);
+            str.remove(i - 2 - num.length(), num.length() + 2);
             bool ok;
-            str.insert(i-2-num.length(), QChar(num.toInt(&ok,8)));
+            str.insert(i - 2 - num.length(), QChar(num.toInt(&ok, 8)));
         }
     }
 
-    if(iPtyIFace)
+    if (iPtyIFace)
         iPtyIFace->writeTerm(str);
 }
 
@@ -1339,12 +1339,12 @@ const QStringList Terminal::grabURLsFromBuffer()
 
     foreach(QString prot, lookFor) {
         int ind=0;
-        while( ind != -1 ) {
+        while (ind != -1) {
             ind = buf.indexOf(prot, ind);
-            if(ind!=-1) {
+            if (ind!=-1) {
                 int ind2 = buf.indexOf(" ",ind);
                 int l=-1;
-                if(ind2!=-1)
+                if (ind2 != -1)
                     l = ind2-ind;
                 ret << buf.mid(ind,l); // the URL
                 ind += prot.length();
@@ -1372,13 +1372,13 @@ QString Terminal::getUserMenuXml()
 
 void Terminal::scrollBackBufferFwd(int lines)
 {
-    if(iUseAltScreenBuffer || lines<=0)
+    if (iUseAltScreenBuffer || lines<=0)
         return;
 
     clearSelection();
 
     iBackBufferScrollPos -= lines;
-    if(iBackBufferScrollPos < 0)
+    if (iBackBufferScrollPos < 0)
         iBackBufferScrollPos = 0;
 
     emit scrollBackBufferAdjusted(false);
@@ -1400,7 +1400,7 @@ void Terminal::scrollBackBufferBack(int lines)
 
 void Terminal::resetBackBufferScrollPos()
 {
-    if(iBackBufferScrollPos==0 && iSelection.isNull())
+    if (iBackBufferScrollPos==0 && iSelection.isNull())
         return;
 
     iBackBufferScrollPos = 0;

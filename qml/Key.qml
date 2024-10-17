@@ -48,6 +48,7 @@ Rectangle {
 
     Image {
         id: keyImage
+
         anchors.centerIn: parent
         opacity: key.labelOpacity
         source: {
@@ -65,6 +66,7 @@ Rectangle {
 
         Text {
             id: keyAltLabel
+
             property bool highlighted: key.isAltCurrent
 
             anchors.horizontalCenter: parent.horizontalCenter

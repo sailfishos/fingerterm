@@ -59,18 +59,18 @@ int main(int argc, char *argv[])
     // fork the child process before creating QGuiApplication
     int socketM;
     int pid = forkpty(&socketM,NULL,NULL,NULL);
-    if( pid==-1 ) {
-        qFatal("forkpty failed");
+    if (pid == -1) {
+        qWarning("forkpty failed");
         exit(1);
-    } else if( pid==0 ) {
+    } else if (pid == 0) {
         setenv("TERM", settings->value("terminal/envVarTERM", "xterm").toByteArray(), 1);
 
         QString execCmd;
-        for(int i=0; i<argc-1; i++) {
-            if( QString(argv[i]) == "-e" )
+        for (int i=0; i<argc-1; i++) {
+            if (QString(argv[i]) == "-e")
                 execCmd = QString(argv[i+1]);
         }
-        if(execCmd.isEmpty()) {
+        if (execCmd.isEmpty()) {
             execCmd = settings->value("general/execCmd").toString();
         }
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     app.installTranslator(translator.data());
 
     QScreen* sc = app.primaryScreen();
-    if(sc){
+    if (sc) {
         QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
                 | Qt::PortraitOrientation
                 | Qt::LandscapeOrientation
@@ -136,20 +136,22 @@ int main(int argc, char *argv[])
     KeyLoader keyLoader;
     keyLoader.setUtil(&util);
     bool ret = keyLoader.loadLayout(util.keyboardLayout());
-    if(!ret) {
+    if (!ret) {
         // on failure, try to load the default one (english) directly from resources
         startupErrorMsg = "There was an error loading the keyboard layout.<br>\nUsing the default one instead.";
         util.setKeyboardLayout("english");
         ret = keyLoader.loadLayout(":/data/english.layout");
-        if(!ret)
-            qFatal("failure loading keyboard layout");
+        if (!ret) {
+            qWarning("failure loading keyboard layout");
+            return 1;
+        }
     }
 
     QQmlContext *context = view.rootContext();
-    context->setContextProperty( "term", &term );
-    context->setContextProperty( "util", &util );
-    context->setContextProperty( "keyLoader", &keyLoader );
-    context->setContextProperty( "startupErrorMessage", startupErrorMsg);
+    context->setContextProperty("term", &term);
+    context->setContextProperty("util", &util);
+    context->setContextProperty("keyLoader", &keyLoader);
+    context->setContextProperty("startupErrorMessage", startupErrorMsg);
 
     term.setWindow(&view);
     util.setWindow(&view);
@@ -162,8 +164,10 @@ int main(int argc, char *argv[])
     view.setSource(QUrl::fromLocalFile(QStringLiteral(DEPLOYMENT_PATH) + QDir::separator() + QStringLiteral("Main.qml")));
 
     QObject *root = view.rootObject();
-    if(!root)
-        qFatal("no root object - qml error");
+    if (!root) {
+        qWarning("no root object - qml error, exiting");
+        return 1;
+    }
 
     if (fullscreen) {
         view.showFullScreen();
@@ -173,8 +177,10 @@ int main(int argc, char *argv[])
 
     PtyIFace ptyiface(pid, socketM, &term, util.charset());
 
-    if( ptyiface.failed() )
-        qFatal("pty failure");
+    if (ptyiface.failed()) {
+        qWarning("pty failure, exiting");
+        return 1;
+    }
 
     return app.exec();
 }

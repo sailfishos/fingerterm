@@ -56,6 +56,7 @@ Rectangle {
 
     Text {
         id: title
+
         text: button.text
         color: !button.enabled ? "#606060"
                                : btnMouseArea.pressed ? "#000000"

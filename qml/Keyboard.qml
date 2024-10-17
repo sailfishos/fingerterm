@@ -49,17 +49,19 @@ Item {
         id: keyboardContents
 
         Column {
-            id: col
-
-            x: (keyboard.width - width) / 2
             spacing: keyboard.keyspacing
+            width: parent.width
 
             Repeater {
                 id: rowRepeater
 
                 model: keyLoader.vkbRows
+                width: parent.width
+
                 delegate: Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
                     spacing: keyboard.keyspacing
+
                     Repeater {
                         id: colRepeater
 
@@ -82,6 +84,8 @@ Item {
 
     Loader {
         id: keyboardLoader
+
+        width: parent.width
     }
 
     Component.onCompleted: {
@@ -104,6 +108,7 @@ Item {
 
         Text {
             id: label
+
             color: keyBgColor
             font.pointSize: 34*window.pixelRatio
             anchors.centerIn: parent
