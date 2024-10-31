@@ -268,7 +268,7 @@ Item {
 
                 y: baseY
                 x: !page.portrait ? page.cornerRounding : 0
-                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0) - 2*baseY
+                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : baseY) - baseY
                 width: parent.width - 2*x
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
@@ -403,12 +403,12 @@ Item {
             function _applyKeyboardOffset() {
                 if (vkb.active) {
                     var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
-                            + textrender.fontHeight*util.extraLinesFromCursor
-                    if (move < vkb.y) {
+                            + textrender.fontHeight * util.extraLinesFromCursor
+                    if ((textrender.baseY + move) < vkb.y) {
                         textrender.y = textrender.baseY
                         textrender.cutAfter = vkb.y
                     } else {
-                        textrender.y = textrender.baseY - move + vkb.y
+                        textrender.y = 0 - move + vkb.y
                         textrender.cutAfter = move
                     }
                 } else {
@@ -436,18 +436,17 @@ Item {
                 setTextRenderAttributes()
             }
 
+            function showErrorMessage(string) {
+                errorDialog.text = "<font size=\"+2\">" + string + "</font>"
+                errorDialog.show = true
+            }
+
             Component.onCompleted: {
                 if (util.showWelcomeScreen)
                     aboutDialog.show = true
                 if (startupErrorMessage != "") {
                     showErrorMessage(startupErrorMessage)
                 }
-            }
-
-            function showErrorMessage(string)
-            {
-                errorDialog.text = "<font size=\"+2\">" + string + "</font>"
-                errorDialog.show = true
             }
         }
     }

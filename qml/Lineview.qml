@@ -44,6 +44,7 @@ Rectangle {
 
     Text {
         id: fontHeightHack
+
         visible: false
         text: "X"
         font.family: util.fontFamily

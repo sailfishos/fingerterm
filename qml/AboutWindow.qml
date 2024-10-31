@@ -36,15 +36,15 @@ NotifyWin {
         //% "Charset:"
         var charSet = qsTrId("fingerterm-about_la_charset")
 
-
         var str = "<font size=\"+3\">" + title + " " + util.versionString() + "</font><br>\n" +
                 "<font size=\"+1\">" +
                 author + " Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
                 configFiles + "<br>\n" +
                 util.configPath() + "/<br><br>\n" +
-                sourceCode + "<br>\n<a href=\"https://git.sailfishos.org/mer-core/fingerterm/\">https://git.sailfishos.org/mer-core/fingerterm/</a>"
+                sourceCode + "<br>\n<a href=\"https://github.com/sailfishos/fingerterm/\">https://github.com/sailfishos/fingerterm/</a>"
         if (term.rows != 0 && term.columns != 0) {
-            str += "<br><br>" + windowTitle + " <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>" //cut long window title
+            str += "<br><br>" + windowTitle + " <font color=\"gray\">" + util.windowTitle.substring(0, 40)
+                    + "</font>" //cut long window title
             if (util.windowTitle.length > 40)
                 str += "..."
             str += "<br>" + terminalSize + " <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>"
