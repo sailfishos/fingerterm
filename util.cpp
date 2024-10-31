@@ -34,12 +34,12 @@
 #include <QFeedbackEffect>
 #endif
 
-Util::Util(QSettings *settings, QObject *parent) :
-    QObject(parent),
-    iSettings(settings),
-    iWindow(0),
-    iTerm(0),
-    iKeyboardMode(KeyboardOff)
+Util::Util(QSettings *settings, QObject *parent)
+    : QObject(parent)
+    , iSettings(settings)
+    , iWindow(0)
+    , iTerm(0)
+    , iKeyboardMode(KeyboardOff)
 {
     connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardOrSelectionChanged()));
 }
@@ -54,9 +54,10 @@ void Util::setWindow(QQuickView* win)
     if (iWindow)
         qFatal("Should set window property only once");
     iWindow = win;
-    if(!iWindow)
+    if (!iWindow)
         qFatal("invalid main window");
-    connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SLOT(contentOrientationChanged(Qt::ScreenOrientation)));
+    connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)),
+            this, SLOT(contentOrientationChanged(Qt::ScreenOrientation)));
 }
 
 void Util::setWindowTitle(QString title)
@@ -155,7 +156,7 @@ void Util::setFontSize(int size)
 
 void Util::keyPressFeedback()
 {
-    if( !settingsValue("ui/keyPressFeedback", true).toBool() )
+    if (!settingsValue("ui/keyPressFeedback", true).toBool())
         return;
 
 #ifdef HAVE_FEEDBACK

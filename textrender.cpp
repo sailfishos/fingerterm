@@ -25,10 +25,10 @@
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
-TextRender::TextRender(QQuickItem *parent) :
-    QQuickPaintedItem(parent),
-    newSelection(true),
-    iAllowGestures(true)
+TextRender::TextRender(QQuickItem *parent)
+    : QQuickPaintedItem(parent)
+    , newSelection(true)
+    , iAllowGestures(true)
 {
     setFlag(ItemHasContents);
 
@@ -70,7 +70,7 @@ TextRender::TextRender(QQuickItem *parent) :
     for (int i = 0; i < 24; i++)
         iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
 
-    if(iColorTable.size() != 256)
+    if (iColorTable.size() != 256)
         qFatal("invalid color table");
 
     iShowBufferScrollIndicator = false;
@@ -102,9 +102,9 @@ void TextRender::paint(QPainter* painter)
     painter->setFont(iFont);
 
     int y=0;
-    if (sTerm->backBufferScrollPos() != 0 && sTerm->backBuffer().size()>0) {
+    if (sTerm->backBufferScrollPos() != 0 && sTerm->backBuffer().size() > 0) {
         int from = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
-        if(from<0)
+        if (from<0)
             from=0;
         int to = sTerm->backBuffer().size();
         if (to-from > sTerm->rows())
@@ -196,11 +196,10 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
                 nextAttrib = buffer[i][j+1];
             }
 
-            if (currAttrib.attrib != nextAttrib.attrib ||
-                currAttrib.bgColor != nextAttrib.bgColor ||
-                currAttrib.fgColor != nextAttrib.fgColor ||
-                j==xcount-1)
-            {
+            if (currAttrib.attrib != nextAttrib.attrib
+                    || currAttrib.bgColor != nextAttrib.bgColor
+                    || currAttrib.fgColor != nextAttrib.fgColor
+                    || j == xcount - 1) {
                 drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, fragWidth, currAttrib);
                 currentX += fragWidth;
                 fragWidth = 0;
@@ -214,29 +213,29 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
             eol.fgColor = buffer[i].fgColor;
             eol.bgColor = buffer[i].bgColor;
             eol.attrib = buffer[i].attrib;
-            drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, sTerm->columns() * iFontWidth - currentX, eol);
+            drawBgFragment(painter, currentX, y - iFontHeight + iFontDescent,
+                           sTerm->columns() * iFontWidth - currentX, eol);
         }
 
         // text for the current line
         QString line;
         currentX = leftmargin;
-        for (int j=0; j<xcount; j++) {
+        for (int j = 0; j < xcount; j++) {
             TermChar tmp = buffer[i][j];
             line += tmp.c;
-            if (j==0) {
+            if (j == 0) {
                 currAttrib = tmp;
                 nextAttrib = tmp;
-            } else if(j<xcount-1) {
+            } else if (j < xcount - 1) {
                 nextAttrib = buffer[i][j+1];
             }
 
-            if (currAttrib.attrib != nextAttrib.attrib ||
-                currAttrib.bgColor != nextAttrib.bgColor ||
-                currAttrib.fgColor != nextAttrib.fgColor ||
-                j==xcount-1)
-            {
+            if (currAttrib.attrib != nextAttrib.attrib
+                    || currAttrib.bgColor != nextAttrib.bgColor
+                    || currAttrib.fgColor != nextAttrib.fgColor
+                    || j == xcount - 1) {
                 drawTextFragment(painter, currentX, y, line, currAttrib);
-                currentX += iFontWidth*line.length();
+                currentX += iFontWidth * line.length();
                 line.clear();
                 currAttrib.attrib = nextAttrib.attrib;
                 currAttrib.bgColor = nextAttrib.bgColor;
@@ -409,8 +408,8 @@ QPoint TextRender::cursorPixelPos()
 
 QPoint TextRender::charsToPixels(QPoint pos)
 {
-    // not 100% accurrate with all fonts
-    return QPoint(2+(pos.x()-1)*iFontWidth, (pos.y()-1)*iFontHeight+iFontDescent+1);
+    // not 100% accurate with all fonts
+    return QPoint(2 + (pos.x() - 1) * iFontWidth, (pos.y() - 1) * iFontHeight + iFontDescent + 1);
 }
 
 QSize TextRender::cursorPixelSize()

@@ -66,7 +66,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
     iVkbColumns = 0;
     bool lastLineHadKey = false;
 
-    if( !from.open(QIODevice::ReadOnly | QIODevice::Text) )
+    if (!from.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
 
     QList<KeyData> keyRow;
@@ -116,7 +116,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
                     key.label_alt.replace("\\x2C",",");
                     parts[3].replace("0x","");
                     key.code_alt = parts.at(3).toInt(&ok,16);
-                    if(!ok) {
+                    if (!ok) {
                         ret = false;
                         break;
                     }

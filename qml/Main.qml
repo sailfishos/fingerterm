@@ -436,18 +436,17 @@ Item {
                 setTextRenderAttributes()
             }
 
+            function showErrorMessage(string) {
+                errorDialog.text = "<font size=\"+2\">" + string + "</font>"
+                errorDialog.show = true
+            }
+
             Component.onCompleted: {
                 if (util.showWelcomeScreen)
                     aboutDialog.show = true
                 if (startupErrorMessage != "") {
                     showErrorMessage(startupErrorMessage)
                 }
-            }
-
-            function showErrorMessage(string)
-            {
-                errorDialog.text = "<font size=\"+2\">" + string + "</font>"
-                errorDialog.show = true
             }
         }
     }
