@@ -268,7 +268,7 @@ Item {
 
                 y: baseY
                 x: !page.portrait ? page.cornerRounding : 0
-                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : 0) - 2*baseY
+                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : baseY) - baseY
                 width: parent.width - 2*x
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
