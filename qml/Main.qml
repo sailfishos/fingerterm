@@ -403,12 +403,12 @@ Item {
             function _applyKeyboardOffset() {
                 if (vkb.active) {
                     var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
-                            + textrender.fontHeight*util.extraLinesFromCursor
-                    if (move < vkb.y) {
+                            + textrender.fontHeight * util.extraLinesFromCursor
+                    if ((textrender.baseY + move) < vkb.y) {
                         textrender.y = textrender.baseY
                         textrender.cutAfter = vkb.y
                     } else {
-                        textrender.y = textrender.baseY - move + vkb.y
+                        textrender.y = 0 - move + vkb.y
                         textrender.cutAfter = move
                     }
                 } else {
