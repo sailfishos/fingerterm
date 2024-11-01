@@ -41,7 +41,8 @@ SOURCES += \
     util.cpp \
     keyloader.cpp
 
-qml.files = qml/Main.qml \
+qml.files = \
+    qml/Main.qml \
     qml/Keyboard.qml \
     qml/Key.qml \
     qml/Lineview.qml \
@@ -59,7 +60,8 @@ INSTALLS += qml
 RESOURCES += \
     resources.qrc
 
-icons.files = icons/backspace.png \
+icons.files = \
+    icons/backspace.png \
     icons/down.png \
     icons/enter.png \
     icons/left.png \
@@ -72,7 +74,8 @@ icons.files = icons/backspace.png \
 icons.path = $$DEPLOYMENT_PATH/icons
 INSTALLS += icons
 
-userdata.files = data/menu.xml \
+userdata.files = \
+    data/menu.xml \
     data/english.layout \
     data/finnish.layout \
     data/french.layout \
