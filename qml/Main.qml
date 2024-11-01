@@ -167,7 +167,7 @@ Item {
                                 multiTouchArea.firstTouchId = touchPoint.pointId
 
                                 //gestures c++ handler
-                                textrender.mousePress(touchPoint.x, touchPoint.y - textrender.y)
+                                textrender.mousePress(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                             }
                         }
 
@@ -181,7 +181,7 @@ Item {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
                             //gestures c++ handler
-                            textrender.mouseMove(touchPoint.x, touchPoint.y - textrender.y)
+                            textrender.mouseMove(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                         }
 
                         var key = multiTouchArea.pressedKeys[touchPoint.pointId]
@@ -210,7 +210,7 @@ Item {
                             }
 
                             //gestures c++ handler
-                            textrender.mouseRelease(touchPoint.x, touchPoint.y - textrender.y)
+                            textrender.mouseRelease(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                             multiTouchArea.firstTouchId = -1
                         }
 
