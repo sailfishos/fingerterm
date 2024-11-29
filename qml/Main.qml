@@ -50,7 +50,7 @@ Item {
         }
         property int cornerRounding: {
             var biggest = 0
-            if (_cornerConfig) {
+            if (_cornerConfig && _cornerConfig.value) {
                 // simple reading of just the biggest corner, assumed detached by full length from edges
                 for (var i = 0; i < _cornerConfig.value.length; i++) {
                     var configItem = _cornerConfig.value[i]
