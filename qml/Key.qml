@@ -39,7 +39,7 @@ Rectangle {
     property bool isAltCurrent: shiftActive && label_alt != ''
 
     width: window.width/12   // some default
-    height: window.height/8 < 55*window.pixelRatio ? window.height/8 : 55*window.pixelRatio
+    height: Math.min(window.height / 8, 55 * window.pixelRatio)
     color: label == "" ? "transparent"
                        : (isClick || keyPressHighlight.running ? keyboard.keyHilightBgColor : keyboard.keyBgColor)
     border.color: label == "" ? "transparent" : keyboard.keyBorderColor
