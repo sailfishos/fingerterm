@@ -18,8 +18,8 @@
 */
 
 import QtQuick 2.0
-import FingerTerm 1.0
 import QtQuick.Window 2.0
+import FingerTerm 1.0
 
 Item {
     id: root
@@ -81,7 +81,7 @@ Item {
 
             property int fadeOutTime: 80
             property int fadeInTime: 350
-            property real pixelRatio: root.width / 540
+            property real pixelRatio: root.width / (Screen.primaryOrientation === Qt.PortraitOrientation ? 540 : 960)
 
             // layout constants
             property int buttonWidthSmall: 60*pixelRatio
