@@ -30,6 +30,8 @@ PopupWindow {
             //: Keyboard layout without any name given
             //% "Unknown"
             return qsTrId("fingerterm-keyboard-layout_la_keyboard-layout-unknown")
+        case "dvorak":
+            return "Dvorak [EN]"
         case "english":
             return "English"
         case "finnish":

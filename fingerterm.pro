@@ -76,6 +76,7 @@ INSTALLS += icons
 
 userdata.files = \
     data/menu.xml \
+    data/dvorak.layout \
     data/english.layout \
     data/finnish.layout \
     data/french.layout \
