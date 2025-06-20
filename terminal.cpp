@@ -26,6 +26,8 @@
 #include "textrender.h"
 #include "util.h"
 
+const char Terminal::ch_ESC;
+
 static bool charIsHexDigit(QChar ch)
 {
     if (ch.isDigit()) // 0-9
