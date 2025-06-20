@@ -1,5 +1,7 @@
 QT = core gui qml quick
 
+greaterThan(QT_MAJOR_VERSION,5) QT += core5compat
+
 CONFIG += link_pkgconfig
 
 enable-feedback {
