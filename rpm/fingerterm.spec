@@ -25,10 +25,10 @@ Summary:   Translation source for %{name}
 Translation source for %{name}
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 
 %build
-qmake -qt=5 CONFIG+=enable-feedback DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
+%qmake5 CONFIG+=enable-feedback DEFINES+='VERSION_STRING=\"\\\"\"%{version}\"\\\"\"'
 %make_build
 
 %install
