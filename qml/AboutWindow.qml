@@ -42,16 +42,20 @@ NotifyWin {
                 configFiles + "<br>\n" +
                 util.configPath() + "/<br><br>\n" +
                 sourceCode + "<br>\n<a href=\"https://github.com/sailfishos/fingerterm/\">https://github.com/sailfishos/fingerterm/</a>"
+
         if (term.rows != 0 && term.columns != 0) {
             str += "<br><br>" + windowTitle + " <font color=\"gray\">" + util.windowTitle.substring(0, 40)
                     + "</font>" //cut long window title
+
             if (util.windowTitle.length > 40)
                 str += "..."
+
             str += "<br>" + terminalSize + " <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>"
             str += "<br>" + charSet + " <font color=\"gray\">" + util.charset + "</font>"
         }
         str += "</font>"
         return str
     }
+
     onDismissed: util.showWelcomeScreen = false
 }

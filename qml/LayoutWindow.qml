@@ -64,6 +64,7 @@ PopupWindow {
 
     SectionHeader {
         id: titleText
+
         width: parent.width
         //% "Keyboard layout"
         text: qsTrId("fingerterm-keyboard-layout_sh_keyboard-layout")

@@ -33,7 +33,7 @@ Item {
         opacity: menuWin.showing ? 0.5 : 0.0
         anchors.fill: parent
 
-        Behavior on opacity { NumberAnimation { duration: 100; } }
+        Behavior on opacity { NumberAnimation { duration: 100 } }
 
         MouseArea {
             anchors.fill: parent
@@ -46,7 +46,7 @@ Item {
         color: "#e0e0e0"
         anchors.left: parent.right
         anchors.leftMargin: menuWin.showing ? -width : 1
-        width: flickableContent.width + 22*window.pixelRatio;
+        width: flickableContent.width + 22 * window.pixelRatio
         height: menuWin.height
 
         MouseArea {
@@ -55,7 +55,7 @@ Item {
         }
 
         Behavior on anchors.leftMargin {
-            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad; }
+            NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
         }
 
         XmlListModel {
@@ -108,6 +108,7 @@ Item {
 
                 Row {
                     id: menuBlocksRow
+
                     spacing: 8*window.pixelRatio
 
                     Column {
@@ -208,9 +209,9 @@ Item {
                                 }
                                 Row {
                                     Button {
+                                        //: Automatic font size
+                                        //% "Auto"
                                         text: "<font size=\"-1\">"
-                                                //: Automatic font size
-                                                //% "Auto"
                                               + qsTrId("fingerterm-menu_bt_orientation-auto")
                                               + "</font>"
                                         highlighted: util.orientationMode == Util.OrientationAuto
@@ -219,9 +220,9 @@ Item {
                                         minHeight: window.buttonHeightSmall
                                     }
                                     Button {
+                                        //: Short for "Landscape" orientation
+                                        //% "L"
                                         text: "<font size=\"-1\">"
-                                                //: Short for "Landscape" orientation
-                                                //% "L"
                                               + qsTrId("fingerterm-menu_bt_orientation-landscape")
                                               + "<font>"
                                         highlighted: util.orientationMode == Util.OrientationLandscape
@@ -230,9 +231,9 @@ Item {
                                         minHeight: window.buttonHeightSmall
                                     }
                                     Button {
+                                        //: Short for "Portrait" orientation
+                                        //% "P"
                                         text: "<font size=\"-1\">"
-                                                //: Short for "Portrait" orientation
-                                                //% "P"
                                               + qsTrId("fingerterm-menu_bt_orientation-portrait")
                                               + "</font>"
                                         highlighted: util.orientationMode == Util.OrientationPortrait
@@ -259,8 +260,8 @@ Item {
                                 }
                                 Row {
                                     Button {
+                                        //% "Gesture"
                                         text: "<font size=\"-1\">"
-                                                //% "Gesture"
                                               + qsTrId("fingerterm-menu_bt_drag-mode-gesture")
                                               + "</font>"
                                         highlighted: util.dragMode == Util.DragGestures
@@ -273,8 +274,8 @@ Item {
                                         minHeight: window.buttonHeightSmall
                                     }
                                     Button {
+                                        //% "Scroll"
                                         text: "<font size=\"-1\">"
-                                                //% "Scroll"
                                               + qsTrId("fingerterm-menu_bt_drag-mode-scroll")
                                               + "</font>"
                                         highlighted: util.dragMode == Util.DragScroll
@@ -287,8 +288,8 @@ Item {
                                         minHeight: window.buttonHeightSmall
                                     }
                                     Button {
+                                        //% "Select"
                                         text: "<font size=\"-1\">"
-                                                //% "Select"
                                               + qsTrId("fingerterm-menu_bt_drag-mode-select")
                                               + "</font>"
                                         highlighted: util.dragMode == Util.DragSelect
@@ -411,6 +412,7 @@ Item {
 
                             Column {
                                 id: vkbDelayColumn
+
                                 SectionHeader {
                                     //: Virtual keyboard delay for hiding the keyboard in milliseconds
                                     //% "VKB delay"
@@ -452,6 +454,7 @@ Item {
 
                                         MouseArea {
                                             id: vkbDelaySliderMA
+
                                             anchors.fill: parent
                                             drag.target: vkbDelaySlider
                                             drag.axis: Drag.XAxis

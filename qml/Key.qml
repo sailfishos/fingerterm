@@ -84,10 +84,10 @@ Rectangle {
 
         Text {
             id: keyLabel
+
             property bool highlighted: !key.isAltCurrent
 
             anchors.horizontalCenter: parent.horizontalCenter
-
             text: {
                 if (key.label.length == 1 && key.label_alt == '') {
                     if (key.shiftActive) {

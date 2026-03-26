@@ -37,8 +37,8 @@
 Util::Util(QSettings *settings, QObject *parent)
     : QObject(parent)
     , iSettings(settings)
-    , iWindow(0)
-    , iTerm(0)
+    , iWindow(nullptr)
+    , iTerm(nullptr)
     , iKeyboardMode(KeyboardOff)
 {
     connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardOrSelectionChanged()));

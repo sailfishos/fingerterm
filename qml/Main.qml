@@ -154,10 +154,10 @@ Item {
             MultiPointTouchArea {
                 id: multiTouchArea
 
-                anchors.fill: parent
-
                 property int firstTouchId: -1
                 property var pressedKeys: ({})
+
+                anchors.fill: parent
 
                 onPressed: {
                     touchPoints.forEach(function (touchPoint) {
@@ -166,7 +166,7 @@ Item {
                             if (multiTouchArea.firstTouchId == -1) {
                                 multiTouchArea.firstTouchId = touchPoint.pointId
 
-                                //gestures c++ handler
+                                // gestures c++ handler
                                 textrender.mousePress(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                             }
                         }
@@ -180,7 +180,7 @@ Item {
                 onUpdated: {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
-                            //gestures c++ handler
+                            // gestures c++ handler
                             textrender.mouseMove(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                         }
 
@@ -209,7 +209,7 @@ Item {
                                 }
                             }
 
-                            //gestures c++ handler
+                            // gestures c++ handler
                             textrender.mouseRelease(touchPoint.x - textrender.x, touchPoint.y - textrender.y)
                             multiTouchArea.firstTouchId = -1
                         }
@@ -224,7 +224,7 @@ Item {
             }
 
             MouseArea {
-                //top right corner menu button
+                // top right corner menu button
                 x: window.width - width
                 width: menuImg.width + 60*window.pixelRatio
                 height: menuImg.height + 30*window.pixelRatio
