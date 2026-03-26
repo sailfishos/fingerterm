@@ -26,7 +26,8 @@ class PtyIFace;
 class Util;
 class QQuickView;
 
-struct TermChar {
+struct TermChar
+{
     QChar c;
     int fgColor;
     int bgColor;
@@ -39,7 +40,8 @@ const int attribUnderline = 2;
 const int attribNegative = 4;
 const QByteArray multiCharEscapes("().*+-/%#");
 
-struct TermAttribs {
+struct TermAttribs
+{
     QPoint cursorPos;
 
     bool wrapAroundMode;
@@ -50,7 +52,8 @@ struct TermAttribs {
     int currentAttrib;
 };
 
-struct TermLine {
+struct TermLine
+{
     QList<TermChar> l;
     int fgColor;
     int bgColor;
@@ -60,18 +63,22 @@ struct TermLine {
         : fgColor(0), bgColor(0), attrib(0)
     {
     }
+
     TermChar& operator[](int i)
     {
         return l[i];
     }
+
     int size() const
     {
         return l.size();
     }
+
     void clear()
     {
         return l.clear();
     }
+
     void append(const TermChar &c)
     {
         l.append(c);
@@ -88,14 +95,14 @@ public:
     static const int defaultFgColor = 7;
     static const int defaultBgColor = 0;
 
-    explicit Terminal(QObject *parent = 0);
+    explicit Terminal(QObject *parent = nullptr);
     virtual ~Terminal() {}
 
     void setPtyIFace(PtyIFace* pty);
-    void setWindow(QQuickView* win) { iWindow=win; }
+    void setWindow(QQuickView* win) { iWindow = win; }
     void setUtil(Util* util) { iUtil = util; }
 
-    void insertInBuffer(const QString& chars);
+    void insertInBuffer(const QString &chars);
 
     QPoint cursorPos();
     void setCursorPos(QPoint pos);
@@ -109,15 +116,16 @@ public:
 
     TermLine& currentLine();
 
-    Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text="");
-    Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
-    Q_INVOKABLE void putString(QString str, bool unEscape=false);
+    Q_INVOKABLE void keyPress(int key, int modifiers, const QString &text = "");
+    Q_INVOKABLE QStringList printableLinesFromCursor(int lines);
+    Q_INVOKABLE void putString(QString str, bool unEscape = false);
 
     Q_INVOKABLE void pasteFromClipboard();
     Q_INVOKABLE void copySelectionToClipboard();
-    Q_INVOKABLE const QStringList grabURLsFromBuffer();
+    Q_INVOKABLE QStringList grabURLsFromBuffer();
 
     Q_INVOKABLE QString getUserMenuXml();
+    Q_INVOKABLE void clearSelection();
 
     void scrollBackBufferFwd(int lines);
     void scrollBackBufferBack(int lines);
@@ -126,7 +134,6 @@ public:
 
     void setSelection(QPoint start, QPoint end, bool selectionOngoing);
     QRect selection();
-    Q_INVOKABLE void clearSelection();
     bool hasSelection();
 
     int rows();
@@ -144,20 +151,21 @@ signals:
 
 private:
     Q_DISABLE_COPY(Terminal)
-    static const char ch_ESC = 0x1B; //escape
+
+    static const char ch_ESC = 0x1B; // escape
     static const int maxScrollBackLines = 300;
 
-    void insertAtCursor(QChar c, bool overwriteMode=true, bool advanceCursor=true);
+    void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
     void deleteAt(QPoint pos);
     void clearAt(QPoint pos);
-    void eraseLineAtCursor(int from=-1, int to=-1);
-    void clearAll(bool wholeBuffer=false);
-    void ansiSequence(const QString& seq);
-    void oscSequence(const QString& seq);
-    void escControlChar(const QString& seq);
+    void eraseLineAtCursor(int from = -1, int to = -1);
+    void clearAll(bool wholeBuffer = false);
+    void ansiSequence(const QString &seq);
+    void oscSequence(const QString &seq);
+    void escControlChar(const QString &seq);
     void trimBackBuffer();
-    void scrollBack(int lines, int insertAt=-1);
-    void scrollFwd(int lines, int removeAt=-1);
+    void scrollBack(int lines, int insertAt = -1);
+    void scrollFwd(int lines, int removeAt = -1);
     void resetTerminal();
     void resetTabs();
     void adjustSelectionPosition(int lines);

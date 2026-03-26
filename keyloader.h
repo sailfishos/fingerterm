@@ -24,7 +24,8 @@
 
 class Util;
 
-struct KeyData {
+struct KeyData
+{
     QString label;
     int code;
     QString label_alt;

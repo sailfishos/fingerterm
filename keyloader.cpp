@@ -23,11 +23,11 @@
 #include "keyloader.h"
 #include "util.h"
 
-KeyLoader::KeyLoader(QObject *parent) :
-    QObject(parent),
-    iVkbRows(0),
-    iVkbColumns(0),
-    iUtil(0)
+KeyLoader::KeyLoader(QObject *parent)
+    : QObject(parent)
+    , iVkbRows(0)
+    , iVkbColumns(0)
+    , iUtil(nullptr)
 {
 }
 
@@ -41,13 +41,12 @@ bool KeyLoader::loadLayout(const QString &layout)
     if (layout.isEmpty() || !iUtil)
         return false;
 
-    if (layout.at(0)==':') {  // load from resources
+    if (layout.at(0) == ':') {  // load from resources
         QResource res(layout);
-        QByteArray resArr( reinterpret_cast<const char*>(res.data()) );
-        QBuffer resBuf( &resArr );
+        QByteArray resArr(reinterpret_cast<const char*>(res.data()));
+        QBuffer resBuf(&resArr);
         ret = loadLayoutInternal(resBuf);
-    }
-    else { // load from file
+    } else { // load from file
         QFile f(iUtil->configPath() + "/" + layout + ".layout");
         if (!f.exists()) // fallback to installation directory
             f.setFileName(QStringLiteral(DEPLOYMENT_PATH) + "/data/" + layout + ".layout");
@@ -72,6 +71,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
     QList<KeyData> keyRow;
     while(!from.atEnd()) {
         QString line = QString::fromUtf8(from.readLine()).simplified();
+
         if (line.length() >= 2 && line.at(0) != ';' && line.at(0) == '[' && line.at(line.length() - 1) == ']') {
             KeyData key;
             key.label = "";
@@ -125,16 +125,14 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
             lastLineHadKey = true;
             cleanUpKey(key);
             keyRow.append(key);
-        }
-        else if (line.length() == 0 && lastLineHadKey) {
+        } else if (line.length() == 0 && lastLineHadKey) {
             if (keyRow.count() > iVkbColumns) {
                 iVkbColumns = keyRow.count();
             }
             iKeyData.append(keyRow);
             keyRow.clear();
             lastLineHadKey = false;
-        }
-        else {
+        } else {
             lastLineHadKey = false;
         }
     }
@@ -202,7 +200,7 @@ const QStringList KeyLoader::availableLayouts()
 
     // Add also layouts from installation path.
     QDir dataDir(QStringLiteral(DEPLOYMENT_PATH) + "/data");
-    results = dataDir.entryList(filter, QDir::Files|QDir::Readable, QDir::Name);
+    results = dataDir.entryList(filter, QDir::Files | QDir::Readable, QDir::Name);
     foreach (QString s, results) {
         QString layout = s.left(s.lastIndexOf('.'));
         if (!ret.contains(layout))

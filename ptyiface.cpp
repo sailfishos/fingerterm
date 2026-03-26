@@ -39,10 +39,10 @@ static int childProcessPid = 0;
 
 void sighandler(int sig)
 {
-    if (sig==SIGCHLD) {
+    if (sig == SIGCHLD) {
         int pid = wait(NULL);
 
-        if (pid > 0 && childProcessPid > 0 &&  pid==childProcessPid) {
+        if (pid > 0 && childProcessPid > 0 &&  pid == childProcessPid) {
             childProcessQuit = true;
             childProcessPid = 0;
             qApp->quit();
@@ -50,14 +50,14 @@ void sighandler(int sig)
     }
 }
 
-PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObject *parent) :
-    QObject(parent),
-    iTerm(term),
-    iPid(pid),
-    iMasterFd(masterFd),
-    iFailed(false),
-    iReadNotifier(0),
-    iTextCodec(0)
+PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObject *parent)
+    : QObject(parent)
+    , iTerm(term)
+    , iPid(pid)
+    , iMasterFd(masterFd)
+    , iFailed(false)
+    , iReadNotifier(0)
+    , iTextCodec(nullptr)
 {
     childProcessPid = iPid;
 
@@ -91,8 +91,8 @@ PtyIFace::~PtyIFace()
         // make the process quit
         kill(iPid, SIGHUP);
         kill(iPid, SIGTERM);
-        int status=0;
-        waitpid(-1,&status,0);
+        int status = 0;
+        waitpid(-1, &status, 0);
     }
 }
 
@@ -138,9 +138,9 @@ void PtyIFace::readTerm(QByteArray &chars)
 
     int ret = 0;
     char ch[64];
-    while(ret != -1) {
+    while (ret != -1) {
         ret = read(iMasterFd, &ch, 64);
         if (ret > 0)
-            chars.append((char*)&ch, ret);
+            chars.append((char*) &ch, ret);
     }
 }

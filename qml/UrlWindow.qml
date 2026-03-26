@@ -55,6 +55,7 @@ PopupWindow {
 
     SectionHeader {
         id: titleText
+
         width: parent.width
         //% "URL grabber"
         text: qsTrId("fingerterm-keyboard-layout_sh_urk-grabber")
