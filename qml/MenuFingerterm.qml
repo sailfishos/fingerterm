@@ -334,7 +334,7 @@ Item {
                                     Button {
                                         //: Virtual keyboard behaviour
                                         //% "Off"
-                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-offf")
+                                        text: qsTrId("fingerterm-menu_bt_virtual-keyboard-behavior-off")
                                         highlighted: util.keyboardMode == Util.KeyboardOff
                                         onClicked: {
                                             util.keyboardMode = Util.KeyboardOff
