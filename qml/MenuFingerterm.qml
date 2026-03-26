@@ -25,6 +25,9 @@ Item {
     id: menuWin
 
     property bool showing
+    property int topPadding
+    property int bottomPadding
+    property int rightPadding
 
     visible: rect.x < menuWin.width
 
@@ -46,7 +49,7 @@ Item {
         color: "#e0e0e0"
         anchors.left: parent.right
         anchors.leftMargin: menuWin.showing ? -width : 1
-        width: flickableContent.width + 22 * window.pixelRatio
+        width: flickableContent.width + 22 * window.pixelRatio + menuWin.rightPadding
         height: menuWin.height
 
         MouseArea {
@@ -60,6 +63,7 @@ Item {
 
         XmlListModel {
             id: xmlModel
+
             xml: term.getUserMenuXml()
             query: "/userMenu/item"
 
@@ -82,8 +86,10 @@ Item {
         }
 
         Rectangle {
-            y: page.cornerRounding + menuFlickArea.visibleArea.yPosition * menuFlickArea.height + window.scrollBarWidth
-            x: parent.width - window.paddingMedium
+            y: menuWin.topPadding
+               + menuFlickArea.visibleArea.yPosition * menuFlickArea.height
+               + window.scrollBarWidth
+            x: parent.width - window.paddingMedium - menuWin.rightPadding
             width: window.scrollBarWidth
             height: menuFlickArea.visibleArea.heightRatio*menuFlickArea.height
             radius: 3*window.pixelRatio
@@ -94,10 +100,10 @@ Item {
             id: menuFlickArea
 
             anchors.fill: parent
-            anchors.topMargin: window.scrollBarWidth + page.cornerRounding
-            anchors.bottomMargin: window.scrollBarWidth + page.cornerRounding
+            anchors.topMargin: window.scrollBarWidth + menuWin.topPadding
+            anchors.bottomMargin: window.scrollBarWidth + menuWin.bottomPadding
             anchors.leftMargin: window.scrollBarWidth
-            anchors.rightMargin: 16*window.pixelRatio
+            anchors.rightMargin: 16*window.pixelRatio + menuWin.rightPadding
             contentHeight: flickableContent.height
             boundsBehavior: Flickable.StopAtBounds
 

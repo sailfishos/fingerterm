@@ -43,9 +43,13 @@ Item {
         property bool portrait: rotation % 180 == 0
 
         property QtObject _cornerConfig
+        property QtObject _cutoutConfig
+
         Component.onCompleted: {
             // avoid hard dependency to nemo configuration and silica
             _cornerConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/rounded_corners' } ",
+                                               page, 'ConfigurationValue')
+            _cutoutConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/cutouts' } ",
                                                page, 'ConfigurationValue')
         }
         property int cornerRounding: {
@@ -61,6 +65,20 @@ Item {
             }
 
             return biggest
+        }
+        property int notch: {
+            var tallest = 0
+            if (_cutoutConfig && _cutoutConfig.value) {
+                for (var i = 0; i < _cutoutConfig.value.length; i++) {
+                    var configItem = _cutoutConfig.value[i]
+                    if (configItem.length == 4) {
+                        // containing (x, y, width, height)
+                        tallest = Math.max(tallest, configItem[1] + configItem[3])
+                    }
+                }
+            }
+
+            return tallest
         }
 
         width: portrait ? root.width : root.height
@@ -136,8 +154,8 @@ Item {
             Lineview {
                 id: lineView
 
-                topMargin: page.portrait ? page.cornerRounding : 0
-                horizontalMargin: page.portrait ? 0 : page.cornerRounding
+                topMargin: page.portrait ? Math.max(page.cornerRounding, page.notch) : 0
+                horizontalMargin: page.portrait ? 0 : Math.max(page.cornerRounding, page.notch)
                 show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
             }
 
@@ -145,8 +163,15 @@ Item {
                 id: vkb
 
                 y: parent.height - vkb.height
-                horizontalMargin: Math.max(util.keyboardMargins, !page.portrait ? page.cornerRounding : 0)
-                bottomMargin: Math.max(util.keyboardMargins, page.portrait ? page.cornerRounding : 0)
+                horizontalMargin: Math.max(util.keyboardMargins,
+                                           !page.portrait ?  Math.max(page.cornerRounding, page.notch)
+                                                          : 0)
+                bottomMargin: Math.max(util.keyboardMargins,
+                                       page.orientation == Qt.InvertedPortraitOrientation
+                                       ? Math.max(page.cornerRounding, page.notch)
+                                       : (page.orientation == Qt.PortraitOrientation
+                                          ? page.cornerRounding
+                                          : 0))
                 visible: page.activeFocus && util.keyboardMode !== Util.KeyboardOff
             }
 
@@ -264,11 +289,23 @@ Item {
 
                 property int duration
                 property int cutAfter: height
-                property int baseY: page.portrait ? page.cornerRounding : 0
+                property int topPadding: page.orientation == Qt.PortraitOrientation
+                                         ? Math.max(page.cornerRounding, page.notch)
+                                         : page.orientation == Qt.InvertedPortraitOrientation
+                                           ? page.cornerRounding
+                                           : 0
+                property int bottomPadding: page.orientation == Qt.InvertedPortraitOrientation
+                                            ? Math.max(page.cornerRounding, page.notch)
+                                            : page.orientation == Qt.PortraitOrientation
+                                              ? page.cornerRounding
+                                              : 0
 
-                y: baseY
-                x: !page.portrait ? page.cornerRounding : 0
-                height: parent.height - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : baseY) - baseY
+                y: topPadding
+                x: page.portrait ? 0
+                                 : Math.max(page.cornerRounding, page.notch)
+                height: parent.height
+                        - (util.keyboardMode == Util.KeyboardFixed ? vkb.height : bottomPadding)
+                        - topPadding
                 width: parent.width - 2*x
                 fontPointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
@@ -321,7 +358,17 @@ Item {
 
             MenuFingerterm {
                 id: menu
+
                 anchors.fill: parent
+                topPadding: Math.max(page.cornerRounding,
+                                     page.orientation == Qt.PortraitOrientation ? page.notch : 0)
+                bottomPadding: Math.max(page.cornerRounding,
+                                        page.orientation == Qt.InvertedPortraitOrientation ? page.notch : 0)
+                rightPadding: page.orientation == Qt.LandscapeOrientation
+                              ? page.cornerRounding
+                              : (page.orientation == Qt.InvertedLandscapeOrientation
+                                 ? Math.max(page.cornerRounding, page.notch)
+                                 : 0)
             }
 
             Text {
@@ -404,15 +451,15 @@ Item {
                 if (vkb.active) {
                     var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
                             + textrender.fontHeight * util.extraLinesFromCursor
-                    if ((textrender.baseY + move) < vkb.y) {
-                        textrender.y = textrender.baseY
+                    if ((textrender.topPadding + move) < vkb.y) {
+                        textrender.y = textrender.topPadding
                         textrender.cutAfter = vkb.y
                     } else {
                         textrender.y = 0 - move + vkb.y
                         textrender.cutAfter = move
                     }
                 } else {
-                    textrender.y = textrender.baseY
+                    textrender.y = textrender.topPadding
                     textrender.cutAfter = textrender.height
                 }
             }
@@ -423,7 +470,7 @@ Item {
                 if (util.keyboardMode === Util.KeyboardMove) {
                     _applyKeyboardOffset()
                 } else {
-                    textrender.y = textrender.baseY
+                    textrender.y = textrender.topPadding
                     textrender.cutAfter = textrender.height
                 }
             }
