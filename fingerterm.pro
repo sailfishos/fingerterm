@@ -3,7 +3,7 @@ QT = core gui qml quick
 CONFIG += link_pkgconfig
 
 enable-feedback {
-    QT += feedback
+    PKGCONFIG += Qt5Feedback
     DEFINES += HAVE_FEEDBACK
 }
 
