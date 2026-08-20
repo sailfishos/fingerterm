@@ -189,12 +189,12 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
         for (int j=0; j<xcount; j++) {
             TermChar tmp = buffer[i][j];
             fragWidth += iFontWidth;
-            if (j==0) {
+            if (j==0)
                 currAttrib = tmp;
-                nextAttrib = tmp;
-            } else if (j<xcount-1) {
+            if (j<xcount-1)
                 nextAttrib = buffer[i][j+1];
-            }
+            else
+                nextAttrib = tmp;
 
             if (currAttrib.attrib != nextAttrib.attrib
                     || currAttrib.bgColor != nextAttrib.bgColor
@@ -223,12 +223,12 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
         for (int j = 0; j < xcount; j++) {
             TermChar tmp = buffer[i][j];
             line += tmp.c;
-            if (j == 0) {
+            if (j == 0)
                 currAttrib = tmp;
-                nextAttrib = tmp;
-            } else if (j < xcount - 1) {
+            if (j < xcount - 1)
                 nextAttrib = buffer[i][j+1];
-            }
+            else
+                nextAttrib = tmp;
 
             if (currAttrib.attrib != nextAttrib.attrib
                     || currAttrib.bgColor != nextAttrib.bgColor
