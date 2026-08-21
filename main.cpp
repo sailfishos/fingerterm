@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
     // fork the child process before creating QGuiApplication
     int socketM;
     int pid = forkpty(&socketM,NULL,NULL,NULL);
+
     if (pid == -1) {
         qWarning("forkpty failed");
         exit(1);
@@ -99,7 +100,8 @@ int main(int argc, char *argv[])
 
     QScreen* sc = app.primaryScreen();
     if (sc) {
-        QFlags<Qt::ScreenOrientation> mask = Qt::PrimaryOrientation
+        QFlags<Qt::ScreenOrientation> mask
+            = Qt::PrimaryOrientation
                 | Qt::PortraitOrientation
                 | Qt::LandscapeOrientation
                 | Qt::InvertedPortraitOrientation
@@ -157,11 +159,11 @@ int main(int argc, char *argv[])
     util.setWindow(&view);
     util.setTerm(&term);
 
-    QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
+    QObject::connect(view.engine(), &QQmlEngine::quit, &app, &QGuiApplication::quit);
 
     view.setResizeMode(QQuickView::SizeRootObjectToView);
     view.engine()->addImportPath(QStringLiteral(DEPLOYMENT_PATH));
-    view.setSource(QUrl::fromLocalFile(QStringLiteral(DEPLOYMENT_PATH) + QDir::separator() + QStringLiteral("Main.qml")));
+    view.setSource(QUrl::fromLocalFile(QStringLiteral(DEPLOYMENT_PATH) + QStringLiteral("/Main.qml")));
 
     QObject *root = view.rootObject();
     if (!root) {
