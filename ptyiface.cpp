@@ -37,7 +37,7 @@ extern "C" {
 static bool childProcessQuit = false;
 static int childProcessPid = 0;
 
-void sighandler(int sig)
+static void sighandler(int sig)
 {
     if (sig == SIGCHLD) {
         int pid = wait(NULL);
@@ -56,7 +56,7 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
     , iPid(pid)
     , iMasterFd(masterFd)
     , iFailed(false)
-    , iReadNotifier(0)
+    , iReadNotifier(nullptr)
     , iTextCodec(nullptr)
 {
     childProcessPid = iPid;
@@ -69,10 +69,10 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
     iTerm->setPtyIFace(this);
 
     resize(iTerm->rows(), iTerm->columns());
-    connect(iTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(resize(int,int)));
+    connect(iTerm, &Terminal::termSizeChanged, this, &PtyIFace::resize);
 
     iReadNotifier = new QSocketNotifier(iMasterFd, QSocketNotifier::Read, this);
-    connect(iReadNotifier, SIGNAL(activated(int)), this, SLOT(readActivated()));
+    connect(iReadNotifier, &QSocketNotifier::activated, this, &PtyIFace::readActivated);
 
     signal(SIGCHLD,&sighandler);
     fcntl(iMasterFd, F_SETFL, O_NONBLOCK); // reads from the descriptor should be non-blocking

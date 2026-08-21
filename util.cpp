@@ -41,7 +41,8 @@ Util::Util(QSettings *settings, QObject *parent)
     , iTerm(nullptr)
     , iKeyboardMode(KeyboardOff)
 {
-    connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardOrSelectionChanged()));
+    connect(QGuiApplication::clipboard(), &QClipboard::dataChanged,
+            this, &Util::clipboardOrSelectionChanged);
 }
 
 Util::~Util()
@@ -56,8 +57,9 @@ void Util::setWindow(QQuickView* win)
     iWindow = win;
     if (!iWindow)
         qFatal("invalid main window");
-    connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)),
-            this, SLOT(contentOrientationChanged(Qt::ScreenOrientation)));
+
+    connect(win, &QQuickView::contentOrientationChanged,
+            this, &Util::contentOrientationChanged);
 }
 
 void Util::setWindowTitle(QString title)
@@ -97,8 +99,9 @@ void Util::setTerm(Terminal *term)
     if (iTerm) {
         qFatal("Should set terminal only once");
     }
+
     iTerm = term;
-    connect(iTerm, SIGNAL(selectionFinished()), this, SIGNAL(clipboardOrSelectionChanged()));
+    connect(iTerm, &Terminal::selectionFinished, this, &Util::clipboardOrSelectionChanged);
 }
 
 void Util::openNewWindow()
@@ -201,7 +204,7 @@ void Util::setDragMode(int mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case DragGestures:
         modeString = "gestures";
         break;
@@ -248,7 +251,7 @@ void Util::setKeyboardMode(int mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case KeyboardFade:
         modeString = "fade";
         break;
@@ -338,7 +341,7 @@ void Util::setOrientationMode(int mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case OrientationAuto:
         modeString = "auto";
         break;

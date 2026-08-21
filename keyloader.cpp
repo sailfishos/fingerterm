@@ -69,7 +69,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
         return false;
 
     QList<KeyData> keyRow;
-    while(!from.atEnd()) {
+    while (!from.atEnd()) {
         QString line = QString::fromUtf8(from.readLine()).simplified();
 
         if (line.length() >= 2 && line.at(0) != ';' && line.at(0) == '[' && line.at(line.length() - 1) == ']') {

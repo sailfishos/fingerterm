@@ -28,14 +28,9 @@
 
 static bool charIsHexDigit(QChar ch)
 {
-    if (ch.isDigit()) // 0-9
-        return true;
-    else if (ch.toLatin1() >= 65 && ch.toLatin1() <= 70) // A-F
-        return true;
-    else if (ch.toLatin1() >= 97 && ch.toLatin1() <= 102) // a-f
-        return true;
-
-    return false;
+    return ch.isDigit() // 0-9
+           || (ch.toLatin1() >= 65 && ch.toLatin1() <= 70) // A-F
+           || (ch.toLatin1() >= 97 && ch.toLatin1() <= 102); // a-f
 }
 
 Terminal::Terminal(QObject *parent)
@@ -567,8 +562,7 @@ void Terminal::ansiSequence(const QString &seq)
 
     bool unhandled = false;
 
-    switch(cmdChar.toLatin1())
-    {
+    switch (cmdChar.toLatin1()) {
     case 'A': // cursor up
         if (!extra.isEmpty()) {
             unhandled = true;

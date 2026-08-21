@@ -39,7 +39,7 @@ public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
 
-    void paint(QPainter*);
+    void paint(QPainter*) override;
 
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
@@ -79,9 +79,9 @@ private:
 
     enum PanGesture { PanNone, PanLeft, PanRight, PanUp, PanDown };
 
-    void paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int &y);
+    void paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int *y);
     void drawBgFragment(QPainter* painter, int x, int y, int width, TermChar style);
-    void drawTextFragment(QPainter* painter, int x, int y, QString text, TermChar style);
+    void drawTextFragment(QPainter* painter, int x, int y, const QString &text, TermChar style);
     QPoint charsToPixels(QPoint pos);
     void selectionHelper(QPointF scenePos, bool selectionOngoing);
 

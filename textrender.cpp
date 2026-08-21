@@ -32,11 +32,11 @@ TextRender::TextRender(QQuickItem *parent)
 {
     setFlag(ItemHasContents);
 
-    connect(this, SIGNAL(widthChanged()), this, SLOT(updateTermSize()));
-    connect(this, SIGNAL(heightChanged()), this, SLOT(updateTermSize()));
-    connect(this, SIGNAL(fontSizeChanged()), this, SLOT(updateTermSize()));
+    connect(this, &TextRender::widthChanged, this, &TextRender::updateTermSize);
+    connect(this, &TextRender::heightChanged, this, &TextRender::updateTermSize);
+    connect(this, &TextRender::fontSizeChanged, this, &TextRender::updateTermSize);
 
-    //normal
+    // normal
     iColorTable.append(QColor(0, 0, 0));
     iColorTable.append(QColor(210, 0, 0));
     iColorTable.append(QColor(0, 210, 0));
@@ -46,7 +46,7 @@ TextRender::TextRender(QQuickItem *parent)
     iColorTable.append(QColor(0, 210, 210));
     iColorTable.append(QColor(235, 235, 235));
 
-    //bright
+    // bright
     iColorTable.append(QColor(127, 127, 127));
     iColorTable.append(QColor(255, 0, 0));
     iColorTable.append(QColor(0, 255, 0));
@@ -56,13 +56,13 @@ TextRender::TextRender(QQuickItem *parent)
     iColorTable.append(QColor(0, 255, 255));
     iColorTable.append(QColor(255, 255, 255));
 
-    //colour cube
+    // colour cube
     for (int r = 0x00; r < 0x100; r += 0x33)
         for (int g = 0x00; g < 0x100; g += 0x33)
             for (int b = 0x00; b < 0x100; b += 0x33)
                 iColorTable.append(QColor(r, g, b));
 
-    //greyscale ramp
+    // greyscale ramp
     int ramp[] = {
           0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
         133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
@@ -84,11 +84,11 @@ TextRender::TextRender(QQuickItem *parent)
     iFontDescent = fontMetrics.descent();
 
     Q_ASSERT(sTerm);
-    connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(selectionChanged()), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
+    connect(sTerm, &Terminal::displayBufferChanged, this, &TextRender::redraw);
+    connect(sTerm, &Terminal::cursorPosChanged, this, &TextRender::redraw);
+    connect(sTerm, &Terminal::termSizeChanged, this, &TextRender::redraw);
+    connect(sTerm, &Terminal::selectionChanged, this, &TextRender::redraw);
+    connect(sTerm, &Terminal::scrollBackBufferAdjusted, this, &TextRender::handleScrollBack);
     updateTermSize();
 }
 
@@ -101,24 +101,24 @@ void TextRender::paint(QPainter* painter)
     painter->save();
     painter->setFont(iFont);
 
-    int y=0;
+    int y = 0;
     if (sTerm->backBufferScrollPos() != 0 && sTerm->backBuffer().size() > 0) {
-        int from = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
-        if (from<0)
-            from=0;
+        int from = qMax(0, sTerm->backBuffer().size() - sTerm->backBufferScrollPos());
         int to = sTerm->backBuffer().size();
-        if (to-from > sTerm->rows())
+        if (to - from > sTerm->rows())
             to = from + sTerm->rows();
-        paintFromBuffer(painter, sTerm->backBuffer(), from, to, y);
-        if (to-from < sTerm->rows() && sTerm->buffer().size()>0) {
-            int to2 = sTerm->rows() - (to-from);
+
+        paintFromBuffer(painter, sTerm->backBuffer(), from, to, &y);
+
+        if (to - from < sTerm->rows() && sTerm->buffer().size() > 0) {
+            int to2 = sTerm->rows() - (to - from);
             if (to2 > sTerm->buffer().size())
                 to2 = sTerm->buffer().size();
-            paintFromBuffer(painter, sTerm->buffer(), 0, to2, y);
+            paintFromBuffer(painter, sTerm->buffer(), 0, to2, &y);
         }
     } else {
         int count = qMin(sTerm->rows(), sTerm->buffer().size());
-        paintFromBuffer(painter, sTerm->buffer(), 0, count, y);
+        paintFromBuffer(painter, sTerm->buffer(), 0, count, &y);
     }
 
     // cursor
@@ -143,40 +143,44 @@ void TextRender::paint(QPainter* painter)
             start = charsToPixels(selection.topLeft());
             end = charsToPixels(selection.bottomRight());
             painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+                              end.x() - start.x() + fontWidth(),
+                              end.y() - start.y() + fontHeight());
         } else {
             start = charsToPixels(selection.topLeft());
             end = charsToPixels(QPoint(sTerm->columns(), selection.top()));
             painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+                              end.x() - start.x() + fontWidth(),
+                              end.y() - start.y() + fontHeight());
 
-            start = charsToPixels(QPoint(1, selection.top()+1));
-            end = charsToPixels(QPoint(sTerm->columns(), selection.bottom()-1));
+            start = charsToPixels(QPoint(1, selection.top() + 1));
+            end = charsToPixels(QPoint(sTerm->columns(), selection.bottom() - 1));
             painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+                              end.x() - start.x() + fontWidth(),
+                              end.y() - start.y() + fontHeight());
 
             start = charsToPixels(QPoint(1, selection.bottom()));
             end = charsToPixels(selection.bottomRight());
             painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+                              end.x() - start.x() + fontWidth(),
+                              end.y() - start.y() + fontHeight());
         }
     }
 
     painter->restore();
 }
 
-void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int &y)
+void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int *y)
 {
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
-
     TermChar nextAttrib = sTerm->zeroChar();
     TermChar currAttrib = sTerm->zeroChar();
     int currentX = leftmargin;
-    for (int i=from; i<to; i++) {
-        y += iFontHeight;
 
-        if (y >= cutAfter)
+    for (int i = from; i < to; i++) {
+        *y += iFontHeight;
+
+        if (*y >= cutAfter)
             painter->setOpacity(0.3);
         else
             painter->setOpacity(1.0);
@@ -186,13 +190,14 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
         // background for the current line
         currentX = leftmargin;
         int fragWidth = 0;
-        for (int j=0; j<xcount; j++) {
+
+        for (int j = 0; j < xcount; j++) {
             TermChar tmp = buffer[i][j];
             fragWidth += iFontWidth;
-            if (j==0)
+            if (j == 0)
                 currAttrib = tmp;
-            if (j<xcount-1)
-                nextAttrib = buffer[i][j+1];
+            if (j < xcount - 1)
+                nextAttrib = buffer[i][j + 1];
             else
                 nextAttrib = tmp;
 
@@ -200,7 +205,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
                     || currAttrib.bgColor != nextAttrib.bgColor
                     || currAttrib.fgColor != nextAttrib.fgColor
                     || j == xcount - 1) {
-                drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, fragWidth, currAttrib);
+                drawBgFragment(painter, currentX, *y - iFontHeight + iFontDescent, fragWidth, currAttrib);
                 currentX += fragWidth;
                 fragWidth = 0;
                 currAttrib.attrib = nextAttrib.attrib;
@@ -213,7 +218,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
             eol.fgColor = buffer[i].fgColor;
             eol.bgColor = buffer[i].bgColor;
             eol.attrib = buffer[i].attrib;
-            drawBgFragment(painter, currentX, y - iFontHeight + iFontDescent,
+            drawBgFragment(painter, currentX, *y - iFontHeight + iFontDescent,
                            sTerm->columns() * iFontWidth - currentX, eol);
         }
 
@@ -234,7 +239,7 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int
                     || currAttrib.bgColor != nextAttrib.bgColor
                     || currAttrib.fgColor != nextAttrib.fgColor
                     || j == xcount - 1) {
-                drawTextFragment(painter, currentX, y, line, currAttrib);
+                drawTextFragment(painter, currentX, *y, line, currAttrib);
                 currentX += iFontWidth * line.length();
                 line.clear();
                 currAttrib.attrib = nextAttrib.attrib;
@@ -257,17 +262,18 @@ void TextRender::drawBgFragment(QPainter* painter, int x, int y, int width, Term
         return;
 
     painter->setPen(Qt::transparent);
-    painter->setBrush( iColorTable[style.bgColor] );
+    painter->setBrush(iColorTable[style.bgColor]);
     painter->drawRect(x, y, width, iFontHeight);
 }
 
-void TextRender::drawTextFragment(QPainter* painter, int x, int y, QString text, TermChar style)
+void TextRender::drawTextFragment(QPainter *painter, int x, int y, const QString &text, TermChar style)
 {
     if (style.attrib & attribNegative) {
         int c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }
+
     if (style.attrib & attribBold) {
         iFont.setBold(true);
         painter->setFont(iFont);
@@ -278,7 +284,7 @@ void TextRender::drawTextFragment(QPainter* painter, int x, int y, QString text,
         painter->setFont(iFont);
     }
 
-    painter->setPen( iColorTable[style.fgColor] );
+    painter->setPen(iColorTable[style.fgColor]);
     painter->setBrush(Qt::transparent);
     painter->drawText(x, y, text);
 }
@@ -322,8 +328,7 @@ void TextRender::mouseMove(float eventX, float eventY)
 
     if (sUtil->dragMode() == Util::DragScroll) {
         dragOrigin = scrollBackBuffer(eventPos, dragOrigin);
-    }
-    else if (sUtil->dragMode() == Util::DragSelect) {
+    } else if (sUtil->dragMode() == Util::DragSelect) {
         selectionHelper(eventPos, true);
     }
 }
@@ -339,19 +344,17 @@ void TextRender::mouseRelease(float eventX, float eventY)
     if (sUtil->dragMode() == Util::DragGestures) {
         int xdist = qAbs(eventPos.x() - dragOrigin.x());
         int ydist = qAbs(eventPos.y() - dragOrigin.y());
-        if (eventPos.x() < dragOrigin.x()-reqDragLength && xdist > ydist*2)
+        if (eventPos.x() < dragOrigin.x()-reqDragLength && xdist > ydist * 2)
             doGesture(PanLeft);
-        else if (eventPos.x() > dragOrigin.x()+reqDragLength && xdist > ydist*2)
+        else if (eventPos.x() > dragOrigin.x()+reqDragLength && xdist > ydist * 2)
             doGesture(PanRight);
-        else if (eventPos.y() > dragOrigin.y()+reqDragLength && ydist > xdist*2)
+        else if (eventPos.y() > dragOrigin.y()+reqDragLength && ydist > xdist * 2)
             doGesture(PanDown);
-        else if (eventPos.y() < dragOrigin.y()-reqDragLength && ydist > xdist*2)
+        else if (eventPos.y() < dragOrigin.y()-reqDragLength && ydist > xdist * 2)
             doGesture(PanUp);
-    }
-    else if (sUtil->dragMode() == Util::DragScroll) {
+    } else if (sUtil->dragMode() == Util::DragScroll) {
         scrollBackBuffer(eventPos, dragOrigin);
-    }
-    else if (sUtil->dragMode() == Util::DragSelect) {
+    } else if (sUtil->dragMode() == Util::DragSelect) {
         selectionHelper(eventPos, false);
     }
 }
@@ -360,10 +363,10 @@ void TextRender::selectionHelper(QPointF scenePos, bool selectionOngoing)
 {
     int yCorr = fontDescent();
 
-    QPoint start(qRound((dragOrigin.x()+2) / fontWidth()),
-                 qRound((dragOrigin.y()+yCorr) / fontHeight()));
-    QPoint end(qRound((scenePos.x()+2) / fontWidth()),
-               qRound((scenePos.y()+yCorr) / fontHeight()));
+    QPoint start(qRound((dragOrigin.x() + 2) / fontWidth()),
+                 qRound((dragOrigin.y() + yCorr) / fontHeight()));
+    QPoint end(qRound((scenePos.x() + 2) / fontWidth()),
+               qRound((scenePos.y() + yCorr) / fontHeight()));
 
     if (start != end) {
         sTerm->setSelection(start, end, selectionOngoing);
@@ -438,10 +441,10 @@ QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)
 
     int lines = ydist / fontSize;
 
-    if (lines > 0 && now.y() < last.y() && xdist < ydist*2) {
+    if (lines > 0 && now.y() < last.y() && xdist < ydist * 2) {
         sTerm->scrollBackBufferFwd(lines);
         last = QPointF(now.x(), last.y() - lines * fontSize);
-    } else if (lines > 0 && now.y() > last.y() && xdist < ydist*2) {
+    } else if (lines > 0 && now.y() > last.y() && xdist < ydist * 2) {
         sTerm->scrollBackBufferBack(lines);
         last = QPointF(now.x(), last.y() + lines * fontSize);
     }
@@ -456,19 +459,16 @@ void TextRender::scrollToEnd()
 
 void TextRender::doGesture(PanGesture gesture)
 {
-    if (gesture==PanLeft) {
+    if (gesture == PanLeft) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panLeftTitle", "Alt-Right").toString());
         sTerm->putString(sUtil->settingsValue("gestures/panLeftCommand", "\\e\\e[C").toString(), true);
-    }
-    else if (gesture==PanRight) {
+    } else if (gesture == PanRight) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panRightTitle", "Alt-Left").toString());
         sTerm->putString(sUtil->settingsValue("gestures/panRightCommand", "\\e\\e[D").toString(), true);
-    }
-    else if (gesture==PanDown) {
+    } else if (gesture == PanDown) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panDownTitle", "Page Up").toString());
         sTerm->putString(sUtil->settingsValue("gestures/panDownCommand", "\\e[5~").toString(), true);
-    }
-    else if (gesture==PanUp) {
+    } else if (gesture == PanUp) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panUpTitle", "Page Down").toString());
         sTerm->putString(sUtil->settingsValue("gestures/panUpCommand", "\\e[6~").toString(), true);
     }
