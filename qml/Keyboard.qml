@@ -135,7 +135,7 @@ Item {
         var ret = keyLoader.loadLayout(util.keyboardLayout)
         if (!ret) {
             //% "There was an error loading the keyboard layout. Using the default one instead."
-            showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"))
+            window.showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"))
             util.keyboardLayout = "english"
             //try the default as a fallback (load from resources to ensure it will succeed)
             ret = keyLoader.loadLayout(":/data/english.layout")
