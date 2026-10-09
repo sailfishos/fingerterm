@@ -29,6 +29,7 @@
 
 extern "C" {
 #include <pty.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -45,12 +46,8 @@ extern "C" {
 int main(int argc, char *argv[])
 {
     QString settings_path(QDir::homePath() + "/.config/FingerTerm");
-    QDir dir;
-
-    if (!dir.exists(settings_path)) {
-        if (!dir.mkdir(settings_path))
-            qWarning() << "Could not create fingerterm settings path" << settings_path;
-    }
+    if (!QDir().mkpath(settings_path))
+        qWarning() << "Could not create fingerterm settings path" << settings_path;
 
     QSettings *settings = new QSettings(settings_path + "/settings.ini", QSettings::IniFormat);
 
@@ -77,8 +74,9 @@ int main(int argc, char *argv[])
 
         delete settings; // don't need 'em here
 
-        passwd *pwdstruct = getpwuid(getuid());
-        char *shell = pwdstruct->pw_shell;
+        const passwd *pwdstruct = getpwuid(getuid());
+        const char *shell = (pwdstruct && pwdstruct->pw_shell && *pwdstruct->pw_shell)
+                ? pwdstruct->pw_shell : "/bin/sh";
         if (execCmd.isEmpty()) {
             // execute the user's default shell
             execl(shell, shell, "--login", (char*)NULL);
@@ -86,15 +84,17 @@ int main(int argc, char *argv[])
             execl(shell, shell, "-c", qPrintable(execCmd), (char*)NULL);
         }
 
-        exit(0);
+        // only reached if exec failed. Don't run the parent's exit handlers.
+        perror("fingerterm: exec");
+        _exit(127);
     }
 
     QScopedPointer<QTranslator> engineeringEnglish(new QTranslator);
     if (!engineeringEnglish->load("fingerterm_eng_en", TRANSLATIONS_PATH))
         qDebug() << "Could not load engineering English translation";
     QScopedPointer<QTranslator> translator(new QTranslator);
-    if (!translator->load(QLocale(), "fingerterm", "-", TRANSLATIONS_PATH))
-        qDebug() << "Could not load translation for" << QLocale().name();
+    // there is not necessarily a translation for the current locale
+    (void)translator->load(QLocale(), "fingerterm", "-", TRANSLATIONS_PATH);
 
     QGuiApplication app(argc, argv);
     app.installTranslator(engineeringEnglish.data());
