@@ -57,7 +57,9 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
     , iMasterFd(masterFd)
     , iFailed(false)
     , iReadNotifier(nullptr)
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     , iTextCodec(nullptr)
+#endif
 {
     childProcessPid = iPid;
 
@@ -77,12 +79,27 @@ PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObje
     signal(SIGCHLD,&sighandler);
     fcntl(iMasterFd, F_SETFL, O_NONBLOCK); // reads from the descriptor should be non-blocking
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    if (!charset.isEmpty()) {
+        iDecoder = QStringDecoder(charset.toLatin1().constData());
+        iEncoder = QStringEncoder(charset.toLatin1().constData());
+    }
+    if (!iDecoder.isValid() || !iEncoder.isValid()) {
+        if (!charset.isEmpty())
+            qWarning() << "Unsupported charset" << charset << "- using UTF-8";
+        iDecoder = QStringDecoder(QStringConverter::Utf8);
+        iEncoder = QStringEncoder(QStringConverter::Utf8);
+    }
+#else
     if (!charset.isEmpty())
         iTextCodec = QTextCodec::codecForName(charset.toLatin1());
     if (!iTextCodec)
         iTextCodec = QTextCodec::codecForName("UTF-8");
     if (!iTextCodec)
         qFatal("No valid text codec");
+    // a stateful decoder keeps multibyte sequences split across reads intact
+    iDecoder.reset(iTextCodec->makeDecoder());
+#endif
 }
 
 PtyIFace::~PtyIFace()
@@ -101,7 +118,11 @@ void PtyIFace::readActivated()
     QByteArray data;
     readTerm(data);
     if (iTerm)
-        iTerm->insertInBuffer(iTextCodec->toUnicode(data));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        iTerm->insertInBuffer(iDecoder.decode(data));
+#else
+        iTerm->insertInBuffer(iDecoder->toUnicode(data));
+#endif
 }
 
 void PtyIFace::resize(int rows, int columns)
@@ -118,7 +139,11 @@ void PtyIFace::resize(int rows, int columns)
 
 void PtyIFace::writeTerm(const QString &chars)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    writeTerm(QByteArray(iEncoder.encode(chars)));
+#else
     writeTerm(iTextCodec->fromUnicode(chars));
+#endif
 }
 
 void PtyIFace::writeTerm(const QByteArray &chars)

@@ -24,7 +24,13 @@
 #include <QSocketNotifier>
 #include <QByteArray>
 #include <QSize>
+#include <QScopedPointer>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QStringDecoder>
+#include <QStringEncoder>
+#else
 #include <QTextCodec>
+#endif
 
 class Terminal;
 
@@ -55,7 +61,13 @@ private:
 
     QSocketNotifier *iReadNotifier;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QStringDecoder iDecoder;
+    QStringEncoder iEncoder;
+#else
     QTextCodec *iTextCodec;
+    QScopedPointer<QTextDecoder> iDecoder;
+#endif
 };
 
 #endif // PTYIFACE_H
