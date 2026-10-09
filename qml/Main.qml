@@ -36,7 +36,9 @@ Item {
     Item {
         id: page
 
-        property int orientation: forceOrientation ? forcedOrientation : Screen.orientation
+        property int orientation: forceOrientation ? forcedOrientation : sensorOrientation
+        // Screen.orientation filtered by the ui/orientationMask setting
+        property int sensorOrientation: Screen.primaryOrientation
         property bool forceOrientation: util.orientationMode != Util.OrientationAuto
         property int forcedOrientation: util.orientationMode == Util.OrientationLandscape ? Qt.LandscapeOrientation
                                                                                           : Qt.PortraitOrientation
@@ -45,7 +47,14 @@ Item {
         property QtObject _cornerConfig
         property QtObject _cutoutConfig
 
+        function updateSensorOrientation() {
+            if (Screen.orientation & util.orientationMask)
+                sensorOrientation = Screen.orientation
+        }
+        Screen.onOrientationChanged: updateSensorOrientation()
+
         Component.onCompleted: {
+            updateSensorOrientation()
             // avoid hard dependency to nemo configuration and silica
             _cornerConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/rounded_corners' } ",
                                                page, 'ConfigurationValue')

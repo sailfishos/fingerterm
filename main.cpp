@@ -90,14 +90,18 @@ int main(int argc, char *argv[])
     }
 
     QScopedPointer<QTranslator> engineeringEnglish(new QTranslator);
-    engineeringEnglish->load("fingerterm_eng_en", TRANSLATIONS_PATH);
+    if (!engineeringEnglish->load("fingerterm_eng_en", TRANSLATIONS_PATH))
+        qDebug() << "Could not load engineering English translation";
     QScopedPointer<QTranslator> translator(new QTranslator);
-    translator->load(QLocale(), "fingerterm", "-", TRANSLATIONS_PATH);
+    if (!translator->load(QLocale(), "fingerterm", "-", TRANSLATIONS_PATH))
+        qDebug() << "Could not load translation for" << QLocale().name();
 
     QGuiApplication app(argc, argv);
     app.installTranslator(engineeringEnglish.data());
     app.installTranslator(translator.data());
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    // Qt 6 always reports orientation changes, the mask is applied in Main.qml
     QScreen* sc = app.primaryScreen();
     if (sc) {
         QFlags<Qt::ScreenOrientation> mask
@@ -111,6 +115,7 @@ int main(int argc, char *argv[])
         }
         sc->setOrientationUpdateMask(mask);
     }
+#endif
 
     qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");
     qmlRegisterUncreatableType<Util>("FingerTerm", 1, 0, "Util", "Util is created by app");

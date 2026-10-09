@@ -326,7 +326,7 @@ void Terminal::keyPress(int key, int modifiers, const QString &text)
 
         if (asciiVal >= 0x41 && asciiVal <= 0x5f) {
             // Turn uppercase characters into their control code equivalent
-            toWrite.append(asciiVal - 0x40);
+            toWrite.append(QChar(asciiVal - 0x40));
         } else {
             qWarning() << "Ctrl+" << c << " does not translate into a control code";
         }
@@ -1272,7 +1272,7 @@ void Terminal::pasteFromClipboard()
 QStringList Terminal::grabURLsFromBuffer()
 {
     QStringList ret;
-    QByteArray buf;
+    QString buf;
 
     // backbuffer
     // a lazy workaround: just grab everything when the buffer is being scrolled (TODO: make a proper fix)
@@ -1307,7 +1307,7 @@ QStringList Terminal::grabURLsFromBuffer()
     lookFor.append("http://");
     lookFor.append("https://");
 
-    foreach(QString prot, lookFor) {
+    foreach (const QString &prot, lookFor) {
         int ind = 0;
         while (ind != -1) {
             ind = buf.indexOf(prot, ind);

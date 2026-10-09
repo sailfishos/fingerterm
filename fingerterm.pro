@@ -3,7 +3,7 @@ QT = core gui qml quick
 CONFIG += link_pkgconfig
 
 enable-feedback {
-    PKGCONFIG += Qt5Feedback
+    PKGCONFIG += Qt$${QT_MAJOR_VERSION}Feedback
     DEFINES += HAVE_FEEDBACK
 }
 
@@ -91,7 +91,7 @@ desktopfile.files = $${TARGET}.desktop
 TS_FILE = $$OUT_PWD/fingerterm.ts
 EE_QM = $$OUT_PWD/fingerterm_eng_en.qm
 
-ts.commands += lupdate $$PWD -ts $$TS_FILE
+ts.commands += $$[QT_HOST_BINS]/lupdate $$PWD -ts $$TS_FILE
 ts.CONFIG += no_check_exist
 ts.output = $$TS_FILE
 ts.input = .
@@ -101,7 +101,7 @@ ts_install.path = /usr/share/translations/source
 ts_install.CONFIG += no_check_exist
 
 # should add -markuntranslated "-" when proper translations are in place (or for testing)
-engineering_english.commands += lrelease -idbased $$TS_FILE -qm $$EE_QM
+engineering_english.commands += $$[QT_HOST_BINS]/lrelease -idbased $$TS_FILE -qm $$EE_QM
 engineering_english.CONFIG += no_check_exist
 engineering_english.depends = ts
 engineering_english.input = $$TS_FILE

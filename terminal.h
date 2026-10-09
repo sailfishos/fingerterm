@@ -152,7 +152,7 @@ signals:
 private:
     Q_DISABLE_COPY(Terminal)
 
-    static const char ch_ESC = 0x1B; // escape
+    static constexpr char ch_ESC = 0x1B; // escape
     static const int maxScrollBackLines = 300;
 
     void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
