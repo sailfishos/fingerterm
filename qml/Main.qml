@@ -54,6 +54,7 @@ Item {
         Screen.onOrientationChanged: updateSensorOrientation()
 
         Component.onCompleted: {
+            Keys.pressed.connect(handleKeyPress)
             updateSensorOrientation()
             // avoid hard dependency to nemo configuration and silica
             _cornerConfig = Qt.createQmlObject("import Nemo.Configuration 1.0; ConfigurationValue { key: '/desktop/sailfish/silica/rounded_corners' } ",
@@ -95,7 +96,8 @@ Item {
         anchors.centerIn: parent
         rotation: Screen.angleBetween(orientation, Screen.primaryOrientation)
         focus: true
-        Keys.onPressed: {
+
+        function handleKeyPress(event) {
             term.keyPress(event.key, event.modifiers, event.text)
         }
 
@@ -137,14 +139,6 @@ Item {
 
             anchors.fill: parent
             color: bgcolor
-
-            Connections {
-                target: util
-                onKeyboardModeChanged: {
-                    window.setTextRenderAttributes()
-                    window.updateVKB()
-                }
-            }
 
             Rectangle {
                 id: bellTimerRect
@@ -193,7 +187,13 @@ Item {
 
                 anchors.fill: parent
 
-                onPressed: {
+                Component.onCompleted: {
+                    pressed.connect(handlePressed)
+                    updated.connect(handleUpdated)
+                    released.connect(handleReleased)
+                }
+
+                function handlePressed(touchPoints) {
                     touchPoints.forEach(function (touchPoint) {
                         var key = vkb.keyAt(touchPoint.x, touchPoint.y)
                         if ((key == null) || (!vkb.active)) {
@@ -211,7 +211,7 @@ Item {
                         multiTouchArea.pressedKeys[touchPoint.pointId] = key
                     })
                 }
-                onUpdated: {
+                function handleUpdated(touchPoints) {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
                             // gestures c++ handler
@@ -226,7 +226,7 @@ Item {
                         }
                     })
                 }
-                onReleased: {
+                function handleReleased(touchPoints) {
                     touchPoints.forEach(function (touchPoint) {
                         if (multiTouchArea.firstTouchId == touchPoint.pointId) {
                             // Toggle keyboard wake-up when tapping outside the keyboard, but:
@@ -353,18 +353,6 @@ Item {
                 interval: 120
             }
 
-            Connections {
-                target: util
-                onVisualBell: bellTimer.start()
-                onNotify: {
-                    textNotify.text = msg
-                    textNotifyAnim.enabled = false
-                    textNotify.opacity = 1.0
-                    textNotifyAnim.enabled = true
-                    textNotify.opacity = 0
-                }
-            }
-
             MenuFingerterm {
                 id: menu
 
@@ -413,11 +401,6 @@ Item {
 
             LayoutWindow {
                 id: layoutWindow
-            }
-
-            Connections {
-                target: term
-                onDisplayBufferChanged: window.displayBufferChanged()
             }
 
             function vkbKeypress(key,modifiers) {
@@ -492,12 +475,33 @@ Item {
                 setTextRenderAttributes()
             }
 
+            function keyboardModeChanged() {
+                setTextRenderAttributes()
+                updateVKB()
+            }
+
+            function showNotification(msg) {
+                textNotify.text = msg
+                textNotifyAnim.enabled = false
+                textNotify.opacity = 1.0
+                textNotifyAnim.enabled = true
+                textNotify.opacity = 0
+            }
+
             function showErrorMessage(string) {
                 errorDialog.text = "<font size=\"+2\">" + string + "</font>"
                 errorDialog.show = true
             }
 
             Component.onCompleted: {
+                // Connected here instead of with Connections or handlers with
+                // injected parameters: their warning-free Qt 6 syntax needs Qt 5.15,
+                // signal.connect() works the same from Qt 5.9 up.
+                util.keyboardModeChanged.connect(keyboardModeChanged)
+                util.visualBell.connect(bellTimer.start)
+                util.notify.connect(showNotification)
+                term.displayBufferChanged.connect(displayBufferChanged)
+
                 if (util.showWelcomeScreen)
                     aboutDialog.show = true
                 if (startupErrorMessage != "") {

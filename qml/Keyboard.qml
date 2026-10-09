@@ -89,6 +89,7 @@ Item {
     }
 
     Component.onCompleted: {
+        util.keyboardLayoutChanged.connect(reloadLayout)
         keyboardLoader.sourceComponent = keyboardContents
     }
 
@@ -130,26 +131,23 @@ Item {
         }
     }
 
-    Connections {
-        target: util
-        onKeyboardLayoutChanged: {
-            var ret = keyLoader.loadLayout(util.keyboardLayout)
+    function reloadLayout() {
+        var ret = keyLoader.loadLayout(util.keyboardLayout)
+        if (!ret) {
+            //% "There was an error loading the keyboard layout. Using the default one instead."
+            showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"))
+            util.keyboardLayout = "english"
+            //try the default as a fallback (load from resources to ensure it will succeed)
+            ret = keyLoader.loadLayout(":/data/english.layout")
             if (!ret) {
-                //% "There was an error loading the keyboard layout. Using the default one instead."
-                showErrorMessage(qsTrId("fingerterm-keyboard_la_erro-loading"))
-                util.keyboardLayout = "english"
-                //try the default as a fallback (load from resources to ensure it will succeed)
-                ret = keyLoader.loadLayout(":/data/english.layout")
-                if (!ret) {
-                    console.log("keyboard layout fail")
-                    Qt.quit()
-                }
+                console.log("keyboard layout fail")
+                Qt.quit()
             }
-            keyboard.keyModifiers = 0
-            // makes the keyboard component reload itself with new data
-            keyboardLoader.sourceComponent = undefined
-            keyboardLoader.sourceComponent = keyboardContents
         }
+        keyboard.keyModifiers = 0
+        // makes the keyboard component reload itself with new data
+        keyboardLoader.sourceComponent = undefined
+        keyboardLoader.sourceComponent = keyboardContents
     }
 
     //borrowed from nemo-keyboard
