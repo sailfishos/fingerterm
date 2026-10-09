@@ -475,25 +475,14 @@ void Terminal::insertAtCursor(QChar c, bool overwriteMode, bool advanceCursor)
 
 void Terminal::deleteAt(QPoint pos)
 {
-    clearAt(pos);
-    buffer()[pos.y() - 1].l.removeAt(pos.x() - 1);
-}
-
-void Terminal::clearAt(QPoint pos)
-{
-    if (pos.y() <= 0 || pos.y() - 1 > buffer().size()
-            || pos.x() <= 0 || pos.x() - 1 > buffer()[pos.y() - 1].size()) {
-        qDebug() << "warning: trying to clear char out of bounds";
+    // lines are stored without trailing blanks, so there is nothing to
+    // delete past the end of the line
+    if (pos.y() < 1 || pos.y() > buffer().size())
         return;
-    }
 
-    // just in case...
-    while (buffer().size() < pos.y())
-        buffer().append(TermLine());
-    while (buffer()[pos.y() - 1].size() < pos.x())
-        buffer()[pos.y() - 1].append(zeroChar());
-
-    buffer()[pos.y() - 1][pos.x() - 1] = zeroChar();
+    TermLine &line = buffer()[pos.y() - 1];
+    if (pos.x() >= 1 && pos.x() <= line.size())
+        line.l.removeAt(pos.x() - 1);
 }
 
 void Terminal::eraseLineAtCursor(int from, int to)
@@ -705,10 +694,7 @@ void Terminal::ansiSequence(const QString &seq)
             params.append(1);
         if (params.at(0) == 0)
             params[0] = 1;
-        if (params.at(0) > iMarginBottom - cursorPos().y())
-            scrollBack(iMarginBottom - cursorPos().y(), cursorPos().y());
-        else
-            scrollBack(params.at(0), cursorPos().y());
+        scrollBack(qMin(params.at(0), iMarginBottom - cursorPos().y() + 1), cursorPos().y());
         setCursorPos(QPoint(1, cursorPos().y()));
         break;
     case 'M':  // delete lines
@@ -722,10 +708,7 @@ void Terminal::ansiSequence(const QString &seq)
             params.append(1);
         if (params.at(0) == 0)
             params[0] = 1;
-        if (params.at(0) > iMarginBottom - cursorPos().y())
-            scrollFwd(iMarginBottom - cursorPos().y(), cursorPos().y());
-        else
-            scrollFwd(params.at(0), cursorPos().y());
+        scrollFwd(qMin(params.at(0), iMarginBottom - cursorPos().y() + 1), cursorPos().y());
         setCursorPos(QPoint(1, cursorPos().y()));
         break;
 
@@ -1092,10 +1075,16 @@ void Terminal::escControlChar(const QString &seq)
         QList<int> &tabStopItem = iTabStops[cursorPos().y() - 1];
         tabStopItem.append(cursorPos().x());
         std::sort(tabStopItem.begin(), tabStopItem.end());
-    } else if (ch.toLatin1() == 'D') {  // cursor down/scroll down one line
-        scrollFwd(1, cursorPos().y());
-    } else if (ch.toLatin1() == 'M') {  // cursor up/scroll up one line
-        scrollBack(1, cursorPos().y());
+    } else if (ch.toLatin1() == 'D') {  // index: cursor down, scroll at the bottom margin
+        if (cursorPos().y() == iMarginBottom)
+            scrollFwd(1);
+        else
+            setCursorPos(QPoint(cursorPos().x(), cursorPos().y() + 1));
+    } else if (ch.toLatin1() == 'M') {  // reverse index: cursor up, scroll at the top margin
+        if (cursorPos().y() == iMarginTop)
+            scrollBack(1);
+        else
+            setCursorPos(QPoint(cursorPos().x(), cursorPos().y() - 1));
     } else if (ch.toLatin1() == 'E') {  // new line
         if (cursorPos().y() == iMarginBottom) {
             scrollFwd(1);
@@ -1160,29 +1149,18 @@ void Terminal::scrollBack(int lines, int insertAt)
 
     adjustSelectionPosition(lines);
 
-    bool useBackbuffer = true;
-    if (insertAt == -1) {
+    if (insertAt == -1)
         insertAt = iMarginTop;
-        useBackbuffer = false;
-    }
     insertAt--;
 
+    // lines are created lazily, make sure the whole scrolling region exists
+    while (buffer().size() < iMarginBottom)
+        buffer().append(TermLine());
+
     while (lines > 0) {
-        if (!iUseAltScreenBuffer) {
-            if (iBackBuffer.size() > 0 && useBackbuffer)
-                buffer().insert(insertAt, iBackBuffer.takeLast());
-            else
-                buffer().insert(insertAt, TermLine());
-        } else {
-            buffer().insert(insertAt, TermLine());
-        }
-
-        int rm = iMarginBottom;
-        if (rm >= buffer().size())
-            rm = buffer().size() - 1;
-
-        buffer().removeAt(rm);
-
+        // insert a blank line, and drop the one pushed out of the scrolling region
+        buffer().insert(insertAt, TermLine());
+        buffer().removeAt(iMarginBottom);
         lines--;
     }
 }
@@ -1193,6 +1171,10 @@ void Terminal::scrollFwd(int lines, int removeAt)
         return;
 
     adjustSelectionPosition(-lines);
+
+    // only lines scrolled off the top of the screen go to the scrollback,
+    // not deleted lines or lines scrolled within a scrolling region
+    const bool toBackBuffer = !iUseAltScreenBuffer && removeAt == -1 && iMarginTop == 1;
 
     if (removeAt == -1) {
         removeAt = iMarginTop;
@@ -1205,7 +1187,7 @@ void Terminal::scrollFwd(int lines, int removeAt)
     while (lines > 0) {
         buffer().insert(iMarginBottom, TermLine());
 
-        if (!iUseAltScreenBuffer)
+        if (toBackBuffer)
             iBackBuffer.append(buffer().takeAt(removeAt));
         else
             buffer().removeAt(removeAt);

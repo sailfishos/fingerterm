@@ -157,7 +157,6 @@ private:
 
     void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
     void deleteAt(QPoint pos);
-    void clearAt(QPoint pos);
     void eraseLineAtCursor(int from = -1, int to = -1);
     void clearAll(bool wholeBuffer = false);
     void ansiSequence(const QString &seq);
