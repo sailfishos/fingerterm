@@ -70,6 +70,11 @@ Terminal::Terminal(QObject *parent)
     , iShowCursor(true)
     , iUseAltScreenBuffer(false)
     , iAppCursorKeys(false)
+    , iReplaceMode(false)
+    , iNewLineMode(false)
+    , iMarginTop(0)
+    , iMarginBottom(0)
+    , iBackBufferScrollPos(0)
 {
     escape = -1;
 
@@ -77,10 +82,8 @@ Terminal::Terminal(QObject *parent)
     iTermAttribs.currentBgColor = defaultBgColor;
     iTermAttribs.currentAttrib = 0;
     iTermAttribs.cursorPos = QPoint(0, 0);
-    iMarginBottom = 0;
-    iMarginTop = 0;
-
-    resetBackBufferScrollPos();
+    iTermAttribs.wrapAroundMode = true;
+    iTermAttribs.originMode = false;
 
     iTermAttribs_saved = iTermAttribs;
     iTermAttribs_saved_alt = iTermAttribs;
@@ -434,13 +437,14 @@ void Terminal::insertInBuffer(const QString &chars)
                     oscSequence(oscSeq);
                     oscSeq.clear();
                 } else if (ch.toLatin1() == ch_ESC) {
+                    // a new escape aborts an unfinished sequence, but may terminate an OSC (ESC \)
+                    if (escape != ']')
+                        escSeq.clear();
                     escape = 0;
                 } else if (escape == '[' || multiCharEscapes.contains(escape)) {
                     escSeq += ch;
                 } else if (escape == ']') {
                     oscSeq += ch;
-                } else if (multiCharEscapes.contains(escape)) {
-                    escSeq += ch;
                 } else {
                     escControlChar(QByteArray(1, ch.toLatin1()));
                     escape = -1;

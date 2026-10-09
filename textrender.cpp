@@ -28,6 +28,10 @@ Util* TextRender::sUtil = 0;
 TextRender::TextRender(QQuickItem *parent)
     : QQuickPaintedItem(parent)
     , newSelection(true)
+    , iFontWidth(0)
+    , iFontHeight(0)
+    , iFontDescent(0)
+    , iShowBufferScrollIndicator(false)
     , iAllowGestures(true)
 {
     setFlag(ItemHasContents);
