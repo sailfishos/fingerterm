@@ -124,7 +124,7 @@ public:
     Q_INVOKABLE void copySelectionToClipboard();
     Q_INVOKABLE QStringList grabURLsFromBuffer();
 
-    Q_INVOKABLE QString getUserMenuXml();
+    Q_INVOKABLE QVariantList userMenuItems();
     Q_INVOKABLE void clearSelection();
 
     void scrollBackBufferFwd(int lines);

@@ -20,6 +20,7 @@
 #include <QGuiApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QXmlStreamReader>
 
 #include "terminal.h"
 #include "ptyiface.h"
@@ -1326,18 +1327,44 @@ QStringList Terminal::grabURLsFromBuffer()
     return ret;
 }
 
-QString Terminal::getUserMenuXml()
+QVariantList Terminal::userMenuItems()
 {
+    QVariantList ret;
     if (!iUtil)
-        return QString();
+        return ret;
 
-    QString ret;
     QFile f(iUtil->configPath() + "/menu.xml");
+    if (!f.exists()) // fallback to installation directory
+        f.setFileName(QStringLiteral(DEPLOYMENT_PATH) + "/data/menu.xml");
+    if (!f.open(QIODevice::ReadOnly))
+        return ret;
 
-    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        ret = f.readAll();
-        f.close();
+    // <userMenu><item><title/><command/><disableOn/></item>...</userMenu>
+    QXmlStreamReader xml(&f);
+    if (!xml.readNextStartElement() || xml.name() != QLatin1String("userMenu"))
+        return ret;
+
+    while (xml.readNextStartElement()) {
+        if (xml.name() != QLatin1String("item")) {
+            xml.skipCurrentElement();
+            continue;
+        }
+
+        QVariantMap item;
+        item.insert("title", QString());
+        item.insert("command", QString());
+        item.insert("disableOn", QString());
+        while (xml.readNextStartElement()) {
+            const QString name = xml.name().toString();
+            const QString text = xml.readElementText(QXmlStreamReader::SkipChildElements);
+            if (item.contains(name))
+                item.insert(name, text);
+        }
+        ret.append(item);
     }
+
+    if (xml.hasError())
+        qWarning() << "Error parsing" << f.fileName() << ":" << xml.errorString();
 
     return ret;
 }
