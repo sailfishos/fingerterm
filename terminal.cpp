@@ -27,6 +27,32 @@
 #include "textrender.h"
 #include "util.h"
 
+// nearest colour of the xterm 256 colour palette, which is all we can store
+static int colorIndexForRgb(int r, int g, int b)
+{
+    r = qBound(0, r, 255);
+    g = qBound(0, g, 255);
+    b = qBound(0, b, 255);
+
+    // 6x6x6 colour cube, levels 0, 51, 102, ... 255
+    const int cube = 16 + 36 * ((r + 25) / 51) + 6 * ((g + 25) / 51) + (b + 25) / 51;
+    if (r != g || g != b)
+        return cube;
+
+    // greys: the greyscale ramp (indexes 232-255) is finer than the cube
+    static const int ramp[] = {
+          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
+        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
+    };
+    int best = 0;
+    for (int i = 1; i < 24; i++) {
+        if (qAbs(ramp[i] - r) < qAbs(ramp[best] - r))
+            best = i;
+    }
+    const int cubeLevel = (r + 25) / 51 * 51;
+    return qAbs(cubeLevel - r) < qAbs(ramp[best] - r) ? cube : 232 + best;
+}
+
 static bool charIsHexDigit(QChar ch)
 {
     return ch.isDigit() // 0-9
@@ -381,12 +407,15 @@ void Terminal::insertInBuffer(const QString &chars)
             }
         } else if (ch.toLatin1() == '\t') {  //tab
             if (cursorPos().y() <= iTabStops.size()) {
+                int next = iTermSize.width(); // no further tab stop: last column
                 for (int i = 0; i < iTabStops[cursorPos().y() - 1].count(); i++) {
                     if (iTabStops[cursorPos().y() - 1][i] > cursorPos().x()) {
-                        setCursorPos(QPoint(iTabStops[cursorPos().y() - 1][i], cursorPos().y()));
+                        next = iTabStops[cursorPos().y() - 1][i];
                         break;
                     }
                 }
+                if (next > cursorPos().x())
+                    setCursorPos(QPoint(next, cursorPos().y()));
             }
         } else if (ch.toLatin1() == 14 || ch.toLatin1() == 15) {  // SI and SO, related to character set... ignore
         } else {
@@ -401,7 +430,7 @@ void Terminal::insertInBuffer(const QString &chars)
                     escape = ch.toLatin1();
                     escSeq += ch;
                 } else if (escape == 0 && ch.toLatin1() == '\\') {  // ESC\ also ends OSC sequence
-                    escape =- 1;
+                    escape = -1;
                     oscSequence(oscSeq);
                     oscSeq.clear();
                 } else if (ch.toLatin1() == ch_ESC) {
@@ -414,12 +443,12 @@ void Terminal::insertInBuffer(const QString &chars)
                     escSeq += ch;
                 } else {
                     escControlChar(QByteArray(1, ch.toLatin1()));
-                    escape =- 1;
+                    escape = -1;
                 }
 
                 if (escape == '[' && ch.toLatin1() >= 64 && ch.toLatin1() <= 126 && ch.toLatin1() != '[') {
                     ansiSequence(escSeq);
-                    escape =- 1;
+                    escape = -1;
                     escSeq.clear();
                 }
                 if (multiCharEscapes.contains(escape) && escSeq.length() >= 2) {
@@ -752,19 +781,29 @@ void Terminal::ansiSequence(const QString &seq)
         scrollBack(params.at(0));
         break;
 
-    case 'X': // erase n characters
-        if (params.count() == 1) {
-            for (int i = 0; i < params[0]; i++)
-                insertAtCursor(' ', true, true);
-            setCursorPos(QPoint(cursorPos().x() - params[0], cursorPos().y()));
-        } else {
+    case 'X': // erase n characters, without moving the cursor
+        if (!extra.isEmpty()) {
             unhandled = true;
+            break;
+        }
+        if (params.count() < 1)
+            params.append(1);
+        if (params.at(0) == 0)
+            params[0] = 1;
+        {
+            TermLine &line = currentLine();
+            const int from = cursorPos().x() - 1;
+            const int to = qMin(from + params.at(0), iTermSize.width());
+            while (line.size() < to)
+                line.append(zeroChar());
+            for (int i = from; i < to; i++)
+                line[i] = zeroChar();
         }
         break;
 
     case 'Z': // back tab
         if (cursorPos().y() > 0 && cursorPos().y() <= iTabStops.size()) {
-            for (int i = iTabStops[cursorPos().y() - 1].count() - 1; i > 0; i--) {
+            for (int i = iTabStops[cursorPos().y() - 1].count() - 1; i >= 0; i--) {
                 if (iTabStops[cursorPos().y() - 1][i] < cursorPos().x()) {
                     setCursorPos(QPoint(iTabStops[cursorPos().y() - 1][i],
                                  cursorPos().y()));
@@ -848,66 +887,59 @@ void Terminal::ansiSequence(const QString &seq)
             unhandled = true;
             break;
         }
-        if (params.count() > 0) {
-            // xterm 256-colour support
-            if (params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
-                if (params.count() > 2 && params[1] == 5
-                        && params[2] >= 0 && params[2] <= 255) {
-                    if (params[0] == 38)
-                        iTermAttribs.currentFgColor = params[2];
-                    else
-                        iTermAttribs.currentBgColor = params[2];
-                }
-                // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
-                break;
-            }
+        if (params.isEmpty())
+            params.append(0);
 
-            if (params.contains(0)) {
+        // parameters are applied in order, 38/48 consume their arguments
+        for (int i = 0; i < params.count(); i++) {
+            const int p = params.at(i);
+            if (p == 0) {
                 iTermAttribs.currentFgColor = defaultFgColor;
                 iTermAttribs.currentBgColor = defaultBgColor;
                 iTermAttribs.currentAttrib = attribNone;
-            }
-            if (params.contains(1))
+            } else if (p == 1) {
                 iTermAttribs.currentAttrib |= attribBold;
-            if (params.contains(4))
+            } else if (p == 4) {
                 iTermAttribs.currentAttrib |= attribUnderline;
-            if (params.contains(7))
+            } else if (p == 7) {
                 iTermAttribs.currentAttrib |= attribNegative;
-
-            if (params.contains(22))
+            } else if (p == 22) {
                 iTermAttribs.currentAttrib &= ~attribBold;
-            if (params.contains(24))
+            } else if (p == 24) {
                 iTermAttribs.currentAttrib &= ~attribUnderline;
-            if (params.contains(27))
+            } else if (p == 27) {
                 iTermAttribs.currentAttrib &= ~attribNegative;
-
-            foreach (int p, params) {
-                if (p >= 30 && p<= 37) {
-                    iTermAttribs.currentFgColor = p - 30;
-                }
-                if (p >= 40 && p<= 47) {
-                    iTermAttribs.currentBgColor = p - 40;
-                }
-            }
-
-            // high-intensity regular-weight extension (nonstandard)
-            foreach(int p, params) {
-                if (p >= 90 && p<= 97) {
-                    iTermAttribs.currentFgColor = p -90 + 8;
-                }
-                if (p >= 100 && p<= 107) {
-                    iTermAttribs.currentBgColor = p -100 + 8;
-                }
-            }
-
-            if (params.contains(39))
+            } else if (p >= 30 && p <= 37) {
+                iTermAttribs.currentFgColor = p - 30;
+            } else if (p == 39) {
                 iTermAttribs.currentFgColor = defaultFgColor;
-            if (params.contains(49))
+            } else if (p >= 40 && p <= 47) {
+                iTermAttribs.currentBgColor = p - 40;
+            } else if (p == 49) {
                 iTermAttribs.currentBgColor = defaultBgColor;
-        } else {
-            iTermAttribs.currentFgColor = defaultFgColor;
-            iTermAttribs.currentBgColor = defaultBgColor;
-            iTermAttribs.currentAttrib = attribNone;
+            } else if (p >= 90 && p <= 97) { // high-intensity regular-weight extension (nonstandard)
+                iTermAttribs.currentFgColor = p - 90 + 8;
+            } else if (p >= 100 && p <= 107) {
+                iTermAttribs.currentBgColor = p - 100 + 8;
+            } else if (p == 38 || p == 48) {
+                int color = -1;
+                if (i + 2 < params.count() && params.at(i + 1) == 5) { // xterm 256 colours
+                    if (params.at(i + 2) >= 0 && params.at(i + 2) <= 255)
+                        color = params.at(i + 2);
+                    i += 2;
+                } else if (i + 4 < params.count() && params.at(i + 1) == 2) { // 24-bit colour
+                    color = colorIndexForRgb(params.at(i + 2), params.at(i + 3), params.at(i + 4));
+                    i += 4;
+                } else {
+                    break; // malformed, ignore the rest
+                }
+                if (color != -1) {
+                    if (p == 38)
+                        iTermAttribs.currentFgColor = color;
+                    else
+                        iTermAttribs.currentBgColor = color;
+                }
+            }
         }
         break;
 
@@ -994,7 +1026,7 @@ void Terminal::ansiSequence(const QString &seq)
         }
         if (params.at(0) < 1)
             params[0] = 1;
-        if (params.at(1) > iTermSize.height())
+        if (params.at(1) < 1 || params.at(1) > iTermSize.height()) // 0 means the last row
             params[1] = iTermSize.height();
 
         iMarginTop = params.at(0);
@@ -1008,7 +1040,7 @@ void Terminal::ansiSequence(const QString &seq)
                 iMarginBottom = iMarginTop + 1;
             }
         }
-        setCursorPos(QPoint(1, iMarginTop));
+        setCursorPos(QPoint(1, iTermAttribs.originMode ? iMarginTop : 1));
         break;
 
     default:
