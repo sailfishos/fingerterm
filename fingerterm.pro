@@ -18,6 +18,12 @@ isEmpty(DEPLOYMENT_PATH) {
 DEFINES += DEPLOYMENT_PATH=\\\"$$DEPLOYMENT_PATH\\\"
 DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"
 
+# the version shown in the about dialog, e.g. qmake VERSION_STRING=1.4.17
+# (rpm/fingerterm.spec passes the define directly instead)
+!isEmpty(VERSION_STRING) {
+    DEFINES += VERSION_STRING=\\\"$$VERSION_STRING\\\"
+}
+
 TEMPLATE = app
 TARGET = fingerterm
 DEPENDPATH += .
