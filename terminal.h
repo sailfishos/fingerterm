@@ -124,7 +124,7 @@ public:
     Q_INVOKABLE void copySelectionToClipboard();
     Q_INVOKABLE QStringList grabURLsFromBuffer();
 
-    Q_INVOKABLE QString getUserMenuXml();
+    Q_INVOKABLE QVariantList userMenuItems();
     Q_INVOKABLE void clearSelection();
 
     void scrollBackBufferFwd(int lines);
@@ -152,12 +152,11 @@ signals:
 private:
     Q_DISABLE_COPY(Terminal)
 
-    static const char ch_ESC = 0x1B; // escape
+    static constexpr char ch_ESC = 0x1B; // escape
     static const int maxScrollBackLines = 300;
 
     void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
     void deleteAt(QPoint pos);
-    void clearAt(QPoint pos);
     void eraseLineAtCursor(int from = -1, int to = -1);
     void clearAll(bool wholeBuffer = false);
     void ansiSequence(const QString &seq);

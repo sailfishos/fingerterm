@@ -20,11 +20,38 @@
 #include <QGuiApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QXmlStreamReader>
 
 #include "terminal.h"
 #include "ptyiface.h"
 #include "textrender.h"
 #include "util.h"
+
+// nearest colour of the xterm 256 colour palette, which is all we can store
+static int colorIndexForRgb(int r, int g, int b)
+{
+    r = qBound(0, r, 255);
+    g = qBound(0, g, 255);
+    b = qBound(0, b, 255);
+
+    // 6x6x6 colour cube, levels 0, 51, 102, ... 255
+    const int cube = 16 + 36 * ((r + 25) / 51) + 6 * ((g + 25) / 51) + (b + 25) / 51;
+    if (r != g || g != b)
+        return cube;
+
+    // greys: the greyscale ramp (indexes 232-255) is finer than the cube
+    static const int ramp[] = {
+          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
+        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
+    };
+    int best = 0;
+    for (int i = 1; i < 24; i++) {
+        if (qAbs(ramp[i] - r) < qAbs(ramp[best] - r))
+            best = i;
+    }
+    const int cubeLevel = (r + 25) / 51 * 51;
+    return qAbs(cubeLevel - r) < qAbs(ramp[best] - r) ? cube : 232 + best;
+}
 
 static bool charIsHexDigit(QChar ch)
 {
@@ -43,6 +70,11 @@ Terminal::Terminal(QObject *parent)
     , iShowCursor(true)
     , iUseAltScreenBuffer(false)
     , iAppCursorKeys(false)
+    , iReplaceMode(false)
+    , iNewLineMode(false)
+    , iMarginTop(0)
+    , iMarginBottom(0)
+    , iBackBufferScrollPos(0)
 {
     escape = -1;
 
@@ -50,10 +82,8 @@ Terminal::Terminal(QObject *parent)
     iTermAttribs.currentBgColor = defaultBgColor;
     iTermAttribs.currentAttrib = 0;
     iTermAttribs.cursorPos = QPoint(0, 0);
-    iMarginBottom = 0;
-    iMarginTop = 0;
-
-    resetBackBufferScrollPos();
+    iTermAttribs.wrapAroundMode = true;
+    iTermAttribs.originMode = false;
 
     iTermAttribs_saved = iTermAttribs;
     iTermAttribs_saved_alt = iTermAttribs;
@@ -326,7 +356,7 @@ void Terminal::keyPress(int key, int modifiers, const QString &text)
 
         if (asciiVal >= 0x41 && asciiVal <= 0x5f) {
             // Turn uppercase characters into their control code equivalent
-            toWrite.append(asciiVal - 0x40);
+            toWrite.append(QChar(asciiVal - 0x40));
         } else {
             qWarning() << "Ctrl+" << c << " does not translate into a control code";
         }
@@ -380,12 +410,15 @@ void Terminal::insertInBuffer(const QString &chars)
             }
         } else if (ch.toLatin1() == '\t') {  //tab
             if (cursorPos().y() <= iTabStops.size()) {
+                int next = iTermSize.width(); // no further tab stop: last column
                 for (int i = 0; i < iTabStops[cursorPos().y() - 1].count(); i++) {
                     if (iTabStops[cursorPos().y() - 1][i] > cursorPos().x()) {
-                        setCursorPos(QPoint(iTabStops[cursorPos().y() - 1][i], cursorPos().y()));
+                        next = iTabStops[cursorPos().y() - 1][i];
                         break;
                     }
                 }
+                if (next > cursorPos().x())
+                    setCursorPos(QPoint(next, cursorPos().y()));
             }
         } else if (ch.toLatin1() == 14 || ch.toLatin1() == 15) {  // SI and SO, related to character set... ignore
         } else {
@@ -400,25 +433,26 @@ void Terminal::insertInBuffer(const QString &chars)
                     escape = ch.toLatin1();
                     escSeq += ch;
                 } else if (escape == 0 && ch.toLatin1() == '\\') {  // ESC\ also ends OSC sequence
-                    escape =- 1;
+                    escape = -1;
                     oscSequence(oscSeq);
                     oscSeq.clear();
                 } else if (ch.toLatin1() == ch_ESC) {
+                    // a new escape aborts an unfinished sequence, but may terminate an OSC (ESC \)
+                    if (escape != ']')
+                        escSeq.clear();
                     escape = 0;
                 } else if (escape == '[' || multiCharEscapes.contains(escape)) {
                     escSeq += ch;
                 } else if (escape == ']') {
                     oscSeq += ch;
-                } else if (multiCharEscapes.contains(escape)) {
-                    escSeq += ch;
                 } else {
                     escControlChar(QByteArray(1, ch.toLatin1()));
-                    escape =- 1;
+                    escape = -1;
                 }
 
                 if (escape == '[' && ch.toLatin1() >= 64 && ch.toLatin1() <= 126 && ch.toLatin1() != '[') {
                     ansiSequence(escSeq);
-                    escape =- 1;
+                    escape = -1;
                     escSeq.clear();
                 }
                 if (multiCharEscapes.contains(escape) && escSeq.length() >= 2) {
@@ -474,25 +508,14 @@ void Terminal::insertAtCursor(QChar c, bool overwriteMode, bool advanceCursor)
 
 void Terminal::deleteAt(QPoint pos)
 {
-    clearAt(pos);
-    buffer()[pos.y() - 1].l.removeAt(pos.x() - 1);
-}
-
-void Terminal::clearAt(QPoint pos)
-{
-    if (pos.y() <= 0 || pos.y() - 1 > buffer().size()
-            || pos.x() <= 0 || pos.x() - 1 > buffer()[pos.y() - 1].size()) {
-        qDebug() << "warning: trying to clear char out of bounds";
+    // lines are stored without trailing blanks, so there is nothing to
+    // delete past the end of the line
+    if (pos.y() < 1 || pos.y() > buffer().size())
         return;
-    }
 
-    // just in case...
-    while (buffer().size() < pos.y())
-        buffer().append(TermLine());
-    while (buffer()[pos.y() - 1].size() < pos.x())
-        buffer()[pos.y() - 1].append(zeroChar());
-
-    buffer()[pos.y() - 1][pos.x() - 1] = zeroChar();
+    TermLine &line = buffer()[pos.y() - 1];
+    if (pos.x() >= 1 && pos.x() <= line.size())
+        line.l.removeAt(pos.x() - 1);
 }
 
 void Terminal::eraseLineAtCursor(int from, int to)
@@ -704,10 +727,7 @@ void Terminal::ansiSequence(const QString &seq)
             params.append(1);
         if (params.at(0) == 0)
             params[0] = 1;
-        if (params.at(0) > iMarginBottom - cursorPos().y())
-            scrollBack(iMarginBottom - cursorPos().y(), cursorPos().y());
-        else
-            scrollBack(params.at(0), cursorPos().y());
+        scrollBack(qMin(params.at(0), iMarginBottom - cursorPos().y() + 1), cursorPos().y());
         setCursorPos(QPoint(1, cursorPos().y()));
         break;
     case 'M':  // delete lines
@@ -721,10 +741,7 @@ void Terminal::ansiSequence(const QString &seq)
             params.append(1);
         if (params.at(0) == 0)
             params[0] = 1;
-        if (params.at(0) > iMarginBottom - cursorPos().y())
-            scrollFwd(iMarginBottom - cursorPos().y(), cursorPos().y());
-        else
-            scrollFwd(params.at(0), cursorPos().y());
+        scrollFwd(qMin(params.at(0), iMarginBottom - cursorPos().y() + 1), cursorPos().y());
         setCursorPos(QPoint(1, cursorPos().y()));
         break;
 
@@ -768,19 +785,29 @@ void Terminal::ansiSequence(const QString &seq)
         scrollBack(params.at(0));
         break;
 
-    case 'X': // erase n characters
-        if (params.count() == 1) {
-            for (int i = 0; i < params[0]; i++)
-                insertAtCursor(' ', true, true);
-            setCursorPos(QPoint(cursorPos().x() - params[0], cursorPos().y()));
-        } else {
+    case 'X': // erase n characters, without moving the cursor
+        if (!extra.isEmpty()) {
             unhandled = true;
+            break;
+        }
+        if (params.count() < 1)
+            params.append(1);
+        if (params.at(0) == 0)
+            params[0] = 1;
+        {
+            TermLine &line = currentLine();
+            const int from = cursorPos().x() - 1;
+            const int to = qMin(from + params.at(0), iTermSize.width());
+            while (line.size() < to)
+                line.append(zeroChar());
+            for (int i = from; i < to; i++)
+                line[i] = zeroChar();
         }
         break;
 
     case 'Z': // back tab
         if (cursorPos().y() > 0 && cursorPos().y() <= iTabStops.size()) {
-            for (int i = iTabStops[cursorPos().y() - 1].count() - 1; i > 0; i--) {
+            for (int i = iTabStops[cursorPos().y() - 1].count() - 1; i >= 0; i--) {
                 if (iTabStops[cursorPos().y() - 1][i] < cursorPos().x()) {
                     setCursorPos(QPoint(iTabStops[cursorPos().y() - 1][i],
                                  cursorPos().y()));
@@ -864,66 +891,59 @@ void Terminal::ansiSequence(const QString &seq)
             unhandled = true;
             break;
         }
-        if (params.count() > 0) {
-            // xterm 256-colour support
-            if (params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
-                if (params.count() > 2 && params[1] == 5
-                        && params[2] >= 0 && params[2] <= 255) {
-                    if (params[0] == 38)
-                        iTermAttribs.currentFgColor = params[2];
-                    else
-                        iTermAttribs.currentBgColor = params[2];
-                }
-                // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
-                break;
-            }
+        if (params.isEmpty())
+            params.append(0);
 
-            if (params.contains(0)) {
+        // parameters are applied in order, 38/48 consume their arguments
+        for (int i = 0; i < params.count(); i++) {
+            const int p = params.at(i);
+            if (p == 0) {
                 iTermAttribs.currentFgColor = defaultFgColor;
                 iTermAttribs.currentBgColor = defaultBgColor;
                 iTermAttribs.currentAttrib = attribNone;
-            }
-            if (params.contains(1))
+            } else if (p == 1) {
                 iTermAttribs.currentAttrib |= attribBold;
-            if (params.contains(4))
+            } else if (p == 4) {
                 iTermAttribs.currentAttrib |= attribUnderline;
-            if (params.contains(7))
+            } else if (p == 7) {
                 iTermAttribs.currentAttrib |= attribNegative;
-
-            if (params.contains(22))
+            } else if (p == 22) {
                 iTermAttribs.currentAttrib &= ~attribBold;
-            if (params.contains(24))
+            } else if (p == 24) {
                 iTermAttribs.currentAttrib &= ~attribUnderline;
-            if (params.contains(27))
+            } else if (p == 27) {
                 iTermAttribs.currentAttrib &= ~attribNegative;
-
-            foreach (int p, params) {
-                if (p >= 30 && p<= 37) {
-                    iTermAttribs.currentFgColor = p - 30;
-                }
-                if (p >= 40 && p<= 47) {
-                    iTermAttribs.currentBgColor = p - 40;
-                }
-            }
-
-            // high-intensity regular-weight extension (nonstandard)
-            foreach(int p, params) {
-                if (p >= 90 && p<= 97) {
-                    iTermAttribs.currentFgColor = p -90 + 8;
-                }
-                if (p >= 100 && p<= 107) {
-                    iTermAttribs.currentBgColor = p -100 + 8;
-                }
-            }
-
-            if (params.contains(39))
+            } else if (p >= 30 && p <= 37) {
+                iTermAttribs.currentFgColor = p - 30;
+            } else if (p == 39) {
                 iTermAttribs.currentFgColor = defaultFgColor;
-            if (params.contains(49))
+            } else if (p >= 40 && p <= 47) {
+                iTermAttribs.currentBgColor = p - 40;
+            } else if (p == 49) {
                 iTermAttribs.currentBgColor = defaultBgColor;
-        } else {
-            iTermAttribs.currentFgColor = defaultFgColor;
-            iTermAttribs.currentBgColor = defaultBgColor;
-            iTermAttribs.currentAttrib = attribNone;
+            } else if (p >= 90 && p <= 97) { // high-intensity regular-weight extension (nonstandard)
+                iTermAttribs.currentFgColor = p - 90 + 8;
+            } else if (p >= 100 && p <= 107) {
+                iTermAttribs.currentBgColor = p - 100 + 8;
+            } else if (p == 38 || p == 48) {
+                int color = -1;
+                if (i + 2 < params.count() && params.at(i + 1) == 5) { // xterm 256 colours
+                    if (params.at(i + 2) >= 0 && params.at(i + 2) <= 255)
+                        color = params.at(i + 2);
+                    i += 2;
+                } else if (i + 4 < params.count() && params.at(i + 1) == 2) { // 24-bit colour
+                    color = colorIndexForRgb(params.at(i + 2), params.at(i + 3), params.at(i + 4));
+                    i += 4;
+                } else {
+                    break; // malformed, ignore the rest
+                }
+                if (color != -1) {
+                    if (p == 38)
+                        iTermAttribs.currentFgColor = color;
+                    else
+                        iTermAttribs.currentBgColor = color;
+                }
+            }
         }
         break;
 
@@ -1010,7 +1030,7 @@ void Terminal::ansiSequence(const QString &seq)
         }
         if (params.at(0) < 1)
             params[0] = 1;
-        if (params.at(1) > iTermSize.height())
+        if (params.at(1) < 1 || params.at(1) > iTermSize.height()) // 0 means the last row
             params[1] = iTermSize.height();
 
         iMarginTop = params.at(0);
@@ -1024,7 +1044,7 @@ void Terminal::ansiSequence(const QString &seq)
                 iMarginBottom = iMarginTop + 1;
             }
         }
-        setCursorPos(QPoint(1, iMarginTop));
+        setCursorPos(QPoint(1, iTermAttribs.originMode ? iMarginTop : 1));
         break;
 
     default:
@@ -1091,10 +1111,16 @@ void Terminal::escControlChar(const QString &seq)
         QList<int> &tabStopItem = iTabStops[cursorPos().y() - 1];
         tabStopItem.append(cursorPos().x());
         std::sort(tabStopItem.begin(), tabStopItem.end());
-    } else if (ch.toLatin1() == 'D') {  // cursor down/scroll down one line
-        scrollFwd(1, cursorPos().y());
-    } else if (ch.toLatin1() == 'M') {  // cursor up/scroll up one line
-        scrollBack(1, cursorPos().y());
+    } else if (ch.toLatin1() == 'D') {  // index: cursor down, scroll at the bottom margin
+        if (cursorPos().y() == iMarginBottom)
+            scrollFwd(1);
+        else
+            setCursorPos(QPoint(cursorPos().x(), cursorPos().y() + 1));
+    } else if (ch.toLatin1() == 'M') {  // reverse index: cursor up, scroll at the top margin
+        if (cursorPos().y() == iMarginTop)
+            scrollBack(1);
+        else
+            setCursorPos(QPoint(cursorPos().x(), cursorPos().y() - 1));
     } else if (ch.toLatin1() == 'E') {  // new line
         if (cursorPos().y() == iMarginBottom) {
             scrollFwd(1);
@@ -1159,29 +1185,18 @@ void Terminal::scrollBack(int lines, int insertAt)
 
     adjustSelectionPosition(lines);
 
-    bool useBackbuffer = true;
-    if (insertAt == -1) {
+    if (insertAt == -1)
         insertAt = iMarginTop;
-        useBackbuffer = false;
-    }
     insertAt--;
 
+    // lines are created lazily, make sure the whole scrolling region exists
+    while (buffer().size() < iMarginBottom)
+        buffer().append(TermLine());
+
     while (lines > 0) {
-        if (!iUseAltScreenBuffer) {
-            if (iBackBuffer.size() > 0 && useBackbuffer)
-                buffer().insert(insertAt, iBackBuffer.takeLast());
-            else
-                buffer().insert(insertAt, TermLine());
-        } else {
-            buffer().insert(insertAt, TermLine());
-        }
-
-        int rm = iMarginBottom;
-        if (rm >= buffer().size())
-            rm = buffer().size() - 1;
-
-        buffer().removeAt(rm);
-
+        // insert a blank line, and drop the one pushed out of the scrolling region
+        buffer().insert(insertAt, TermLine());
+        buffer().removeAt(iMarginBottom);
         lines--;
     }
 }
@@ -1192,6 +1207,10 @@ void Terminal::scrollFwd(int lines, int removeAt)
         return;
 
     adjustSelectionPosition(-lines);
+
+    // only lines scrolled off the top of the screen go to the scrollback,
+    // not deleted lines or lines scrolled within a scrolling region
+    const bool toBackBuffer = !iUseAltScreenBuffer && removeAt == -1 && iMarginTop == 1;
 
     if (removeAt == -1) {
         removeAt = iMarginTop;
@@ -1204,7 +1223,7 @@ void Terminal::scrollFwd(int lines, int removeAt)
     while (lines > 0) {
         buffer().insert(iMarginBottom, TermLine());
 
-        if (!iUseAltScreenBuffer)
+        if (toBackBuffer)
             iBackBuffer.append(buffer().takeAt(removeAt));
         else
             buffer().removeAt(removeAt);
@@ -1272,7 +1291,7 @@ void Terminal::pasteFromClipboard()
 QStringList Terminal::grabURLsFromBuffer()
 {
     QStringList ret;
-    QByteArray buf;
+    QString buf;
 
     // backbuffer
     // a lazy workaround: just grab everything when the buffer is being scrolled (TODO: make a proper fix)
@@ -1307,7 +1326,7 @@ QStringList Terminal::grabURLsFromBuffer()
     lookFor.append("http://");
     lookFor.append("https://");
 
-    foreach(QString prot, lookFor) {
+    foreach (const QString &prot, lookFor) {
         int ind = 0;
         while (ind != -1) {
             ind = buf.indexOf(prot, ind);
@@ -1326,18 +1345,44 @@ QStringList Terminal::grabURLsFromBuffer()
     return ret;
 }
 
-QString Terminal::getUserMenuXml()
+QVariantList Terminal::userMenuItems()
 {
+    QVariantList ret;
     if (!iUtil)
-        return QString();
+        return ret;
 
-    QString ret;
     QFile f(iUtil->configPath() + "/menu.xml");
+    if (!f.exists()) // fallback to installation directory
+        f.setFileName(QStringLiteral(DEPLOYMENT_PATH) + "/data/menu.xml");
+    if (!f.open(QIODevice::ReadOnly))
+        return ret;
 
-    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        ret = f.readAll();
-        f.close();
+    // <userMenu><item><title/><command/><disableOn/></item>...</userMenu>
+    QXmlStreamReader xml(&f);
+    if (!xml.readNextStartElement() || xml.name() != QLatin1String("userMenu"))
+        return ret;
+
+    while (xml.readNextStartElement()) {
+        if (xml.name() != QLatin1String("item")) {
+            xml.skipCurrentElement();
+            continue;
+        }
+
+        QVariantMap item;
+        item.insert("title", QString());
+        item.insert("command", QString());
+        item.insert("disableOn", QString());
+        while (xml.readNextStartElement()) {
+            const QString name = xml.name().toString();
+            const QString text = xml.readElementText(QXmlStreamReader::SkipChildElements);
+            if (item.contains(name))
+                item.insert(name, text);
+        }
+        ret.append(item);
     }
+
+    if (xml.hasError())
+        qWarning() << "Error parsing" << f.fileName() << ":" << xml.errorString();
 
     return ret;
 }

@@ -106,7 +106,7 @@ void Util::setTerm(Terminal *term)
 
 void Util::openNewWindow()
 {
-    QProcess::startDetached("/usr/bin/fingerterm");
+    QProcess::startDetached(QCoreApplication::applicationFilePath(), QStringList());
 }
 
 QString Util::configPath()
@@ -355,6 +355,15 @@ void Util::setOrientationMode(int mode)
 
     setSettingsValue("ui/orientationLockMode", modeString);
     emit orientationModeChanged();
+}
+
+int Util::orientationMask()
+{
+    int mask = Qt::PortraitOrientation | Qt::LandscapeOrientation
+            | Qt::InvertedPortraitOrientation | Qt::InvertedLandscapeOrientation;
+    if (iSettings && iSettings->contains("ui/orientationMask"))
+        mask &= iSettings->value("ui/orientationMask").toInt();
+    return mask;
 }
 
 bool Util::showWelcomeScreen()

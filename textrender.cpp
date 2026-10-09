@@ -28,6 +28,10 @@ Util* TextRender::sUtil = 0;
 TextRender::TextRender(QQuickItem *parent)
     : QQuickPaintedItem(parent)
     , newSelection(true)
+    , iFontWidth(0)
+    , iFontHeight(0)
+    , iFontDescent(0)
+    , iShowBufferScrollIndicator(false)
     , iAllowGestures(true)
 {
     setFlag(ItemHasContents);
@@ -76,12 +80,13 @@ TextRender::TextRender(QQuickItem *parent)
     iShowBufferScrollIndicator = false;
 
     iFont = QFont(sUtil->fontFamily(), sUtil->fontSize());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    iFont.setStyleHint(QFont::Monospace);
+#else
     iFont.setStyleHint(QFont::Monospace, QFont::StyleStrategy(QFont::PreferDefault | QFont::ForceIntegerMetrics));
+#endif
     iFont.setBold(false);
-    QFontMetrics fontMetrics(iFont);
-    iFontHeight = fontMetrics.height();
-    iFontWidth = fontMetrics.maxWidth();
-    iFontDescent = fontMetrics.descent();
+    updateFontMetrics();
 
     Q_ASSERT(sTerm);
     connect(sTerm, &Terminal::displayBufferChanged, this, &TextRender::redraw);
@@ -388,12 +393,29 @@ void TextRender::setFontPointSize(int psize)
 {
     if (iFont.pointSize() != psize) {
         iFont.setPointSize(psize);
-        QFontMetrics fontMetrics(iFont);
-        iFontHeight = fontMetrics.height();
-        iFontWidth = fontMetrics.maxWidth();
-        iFontDescent = fontMetrics.descent();
+        updateFontMetrics();
         emit fontSizeChanged();
     }
+}
+
+void TextRender::updateFontMetrics()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    // Qt 6 has no QFont::ForceIntegerMetrics. Adjust the glyph advance with
+    // letter spacing so that a character cell is a whole number of pixels wide
+    // (rounded, like ForceIntegerMetrics did) and text runs stay aligned with
+    // the backgrounds, cursor and selection.
+    iFont.setLetterSpacing(QFont::AbsoluteSpacing, 0);
+    const qreal advance = QFontMetricsF(iFont).horizontalAdvance(QLatin1Char('M'));
+    iFontWidth = qMax(1, qRound(advance));
+    iFont.setLetterSpacing(QFont::AbsoluteSpacing, iFontWidth - advance);
+    QFontMetrics fontMetrics(iFont);
+#else
+    QFontMetrics fontMetrics(iFont);
+    iFontWidth = fontMetrics.maxWidth();
+#endif
+    iFontHeight = fontMetrics.height();
+    iFontDescent = fontMetrics.descent();
 }
 
 void TextRender::setShowBufferScrollIndicator(bool show)

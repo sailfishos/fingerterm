@@ -44,10 +44,8 @@ class Util : public QObject
     Q_PROPERTY(QString charset READ charset CONSTANT)
     Q_PROPERTY(int keyboardMargins READ keyboardMargins CONSTANT)
     Q_PROPERTY(int orientationMode READ orientationMode WRITE setOrientationMode NOTIFY orientationModeChanged)
+    Q_PROPERTY(int orientationMask READ orientationMask CONSTANT)
     Q_PROPERTY(bool showWelcomeScreen READ showWelcomeScreen WRITE setShowWelcomeScreen NOTIFY showWelcomeScreenChanged)
-    Q_ENUMS(KeyboardMode)
-    Q_ENUMS(DragMode)
-    Q_ENUMS(OrientationMode)
 
 public:
     enum KeyboardMode {
@@ -56,6 +54,7 @@ public:
         KeyboardFade,
         KeyboardMove
     };
+    Q_ENUM(KeyboardMode)
 
     enum DragMode {
         DragOff,
@@ -63,12 +62,14 @@ public:
         DragScroll,
         DragSelect
     };
+    Q_ENUM(DragMode)
 
     enum OrientationMode {
         OrientationAuto,
         OrientationLandscape,
         OrientationPortrait
     };
+    Q_ENUM(OrientationMode)
 
     explicit Util(QSettings* settings, QObject *parent = 0);
     virtual ~Util();
@@ -122,6 +123,7 @@ public:
 
     int orientationMode();
     void setOrientationMode(int mode);
+    int orientationMask();
 
     bool showWelcomeScreen();
     void setShowWelcomeScreen(bool value);

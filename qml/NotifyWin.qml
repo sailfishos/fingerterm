@@ -39,7 +39,7 @@ PopupWindow {
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.Wrap
 
-        onLinkActivated: Qt.openUrlExternally(link)
+        Component.onCompleted: linkActivated.connect(Qt.openUrlExternally)
     }
 
     Button {
