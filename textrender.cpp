@@ -25,6 +25,37 @@
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
+// The 256 colour palette is 16 basic colours, a 6x6x6 colour cube with
+// levels 0, 51, 102, ... 255 (indexes 16-231) and a greyscale ramp
+// (indexes 232-255), see the constructor
+static const int cubeStep = 0x33;
+static const int greyRamp[24] = {
+      0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
+    133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
+};
+
+// nearest colour of the palette, which is all a cell can store
+int TextRender::colorIndexForRgb(int r, int g, int b)
+{
+    r = qBound(0, r, 255);
+    g = qBound(0, g, 255);
+    b = qBound(0, b, 255);
+
+    const int half = cubeStep / 2;
+    const int cube = 16 + 36 * ((r + half) / cubeStep) + 6 * ((g + half) / cubeStep) + (b + half) / cubeStep;
+    if (r != g || g != b)
+        return cube;
+
+    // greys: the greyscale ramp is finer than the cube
+    int best = 0;
+    for (int i = 1; i < 24; i++) {
+        if (qAbs(greyRamp[i] - r) < qAbs(greyRamp[best] - r))
+            best = i;
+    }
+    const int cubeLevel = (r + half) / cubeStep * cubeStep;
+    return qAbs(cubeLevel - r) < qAbs(greyRamp[best] - r) ? cube : 232 + best;
+}
+
 TextRender::TextRender(QQuickItem *parent)
     : QQuickPaintedItem(parent)
     , newSelection(true)
@@ -61,18 +92,14 @@ TextRender::TextRender(QQuickItem *parent)
     iColorTable.append(QColor(255, 255, 255));
 
     // colour cube
-    for (int r = 0x00; r < 0x100; r += 0x33)
-        for (int g = 0x00; g < 0x100; g += 0x33)
-            for (int b = 0x00; b < 0x100; b += 0x33)
+    for (int r = 0; r <= 255; r += cubeStep)
+        for (int g = 0; g <= 255; g += cubeStep)
+            for (int b = 0; b <= 255; b += cubeStep)
                 iColorTable.append(QColor(r, g, b));
 
     // greyscale ramp
-    int ramp[] = {
-          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
-        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
-    };
-    for (int i = 0; i < 24; i++)
-        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
+    for (int grey : greyRamp)
+        iColorTable.append(QColor(grey, grey, grey));
 
     if (iColorTable.size() != 256)
         qFatal("invalid color table");

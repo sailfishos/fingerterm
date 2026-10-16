@@ -43,6 +43,7 @@ public:
 
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
+    static int colorIndexForRgb(int r, int g, int b);
 
     int fontWidth() { return iFontWidth; }
     int fontHeight() { return iFontHeight; }

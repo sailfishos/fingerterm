@@ -91,7 +91,6 @@ public:
     int uiFontSize();
 
     int fontSize();
-    static int defaultFontSize(int windowWidth, bool portraitScreen);
     void setFontSize(int size);
 
     Q_INVOKABLE void keyPressFeedback();

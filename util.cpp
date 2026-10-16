@@ -34,6 +34,21 @@
 #include <QFeedbackEffect>
 #endif
 
+static int defaultFontSize(int windowWidth, bool portraitScreen)
+{
+    // A point is not a physical size everywhere: where the platform reports a
+    // fixed logical DPI, 11pt is a few pixels high whatever the panel density.
+    // Main.qml therefore sizes the whole UI, its fonts included, with
+    // pixelRatio (the window width relative to a 540x960 reference). Scale the
+    // default terminal font the same way, so it starts out at about 60 columns
+    // in portrait instead of shrinking as the resolution goes up. Screens no
+    // larger than the reference keep the plain 11pt.
+    const int baseSize = 11;
+    const qreal pixelRatio = windowWidth / (portraitScreen ? 540.0 : 960.0);
+
+    return qRound(baseSize * qMax<qreal>(1.0, pixelRatio));
+}
+
 Util::Util(QSettings *settings, QObject *parent)
     : QObject(parent)
     , iSettings(settings)
@@ -145,21 +160,6 @@ QString Util::versionString()
 int Util::uiFontSize()
 {
     return 12;
-}
-
-int Util::defaultFontSize(int windowWidth, bool portraitScreen)
-{
-    // A point is not a physical size everywhere: where the platform reports a
-    // fixed logical DPI, 11pt is a few pixels high whatever the panel density.
-    // Main.qml therefore sizes the whole UI, its fonts included, with
-    // pixelRatio (the window width relative to a 540x960 reference). Scale the
-    // default terminal font the same way, so it starts out at about 60 columns
-    // in portrait instead of shrinking as the resolution goes up. Screens no
-    // larger than the reference keep the plain 11pt.
-    const int baseSize = 11;
-    const qreal pixelRatio = windowWidth / (portraitScreen ? 540.0 : 960.0);
-
-    return qRound(baseSize * qMax<qreal>(1.0, pixelRatio));
 }
 
 int Util::fontSize()

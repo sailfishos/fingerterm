@@ -27,32 +27,6 @@
 #include "textrender.h"
 #include "util.h"
 
-// nearest colour of the xterm 256 colour palette, which is all we can store
-static int colorIndexForRgb(int r, int g, int b)
-{
-    r = qBound(0, r, 255);
-    g = qBound(0, g, 255);
-    b = qBound(0, b, 255);
-
-    // 6x6x6 colour cube, levels 0, 51, 102, ... 255
-    const int cube = 16 + 36 * ((r + 25) / 51) + 6 * ((g + 25) / 51) + (b + 25) / 51;
-    if (r != g || g != b)
-        return cube;
-
-    // greys: the greyscale ramp (indexes 232-255) is finer than the cube
-    static const int ramp[] = {
-          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
-        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
-    };
-    int best = 0;
-    for (int i = 1; i < 24; i++) {
-        if (qAbs(ramp[i] - r) < qAbs(ramp[best] - r))
-            best = i;
-    }
-    const int cubeLevel = (r + 25) / 51 * 51;
-    return qAbs(cubeLevel - r) < qAbs(ramp[best] - r) ? cube : 232 + best;
-}
-
 static bool charIsHexDigit(QChar ch)
 {
     return ch.isDigit() // 0-9
@@ -932,7 +906,7 @@ void Terminal::ansiSequence(const QString &seq)
                         color = params.at(i + 2);
                     i += 2;
                 } else if (i + 4 < params.count() && params.at(i + 1) == 2) { // 24-bit colour
-                    color = colorIndexForRgb(params.at(i + 2), params.at(i + 3), params.at(i + 4));
+                    color = TextRender::colorIndexForRgb(params.at(i + 2), params.at(i + 3), params.at(i + 4));
                     i += 4;
                 } else {
                     break; // malformed, ignore the rest
