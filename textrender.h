@@ -43,6 +43,7 @@ public:
 
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
+    static int colorIndexForRgb(int r, int g, int b);
 
     int fontWidth() { return iFontWidth; }
     int fontHeight() { return iFontHeight; }
@@ -79,6 +80,7 @@ private:
 
     enum PanGesture { PanNone, PanLeft, PanRight, PanUp, PanDown };
 
+    void updateFontMetrics();
     void paintFromBuffer(QPainter* painter, QList<TermLine>& buffer, int from, int to, int *y);
     void drawBgFragment(QPainter* painter, int x, int y, int width, TermChar style);
     void drawTextFragment(QPainter* painter, int x, int y, const QString &text, TermChar style);

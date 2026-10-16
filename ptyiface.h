@@ -24,7 +24,13 @@
 #include <QSocketNotifier>
 #include <QByteArray>
 #include <QSize>
+#include <QScopedPointer>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QStringDecoder>
+#include <QStringEncoder>
+#else
 #include <QTextCodec>
+#endif
 
 class Terminal;
 
@@ -36,11 +42,13 @@ public:
     virtual ~PtyIFace();
 
     void writeTerm(const QString &chars);
-    bool failed() { return iFailed; }
+    bool failed() const { return iFailed; }
 
 private slots:
     void resize(int rows, int columns);
     void readActivated();
+    void flushWriteBuffer();
+    void childStateChanged();
 
 private:
     Q_DISABLE_COPY(PtyIFace)
@@ -52,10 +60,20 @@ private:
     int iPid;
     int iMasterFd;
     bool iFailed;
+    bool iChildExited;
 
     QSocketNotifier *iReadNotifier;
+    QSocketNotifier *iWriteNotifier;
+    QSocketNotifier *iChildNotifier;
+    QByteArray iWriteBuffer;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QStringDecoder iDecoder;
+    QStringEncoder iEncoder;
+#else
     QTextCodec *iTextCodec;
+    QScopedPointer<QTextDecoder> iDecoder;
+#endif
 };
 
 #endif // PTYIFACE_H

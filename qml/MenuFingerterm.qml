@@ -18,7 +18,6 @@
 */
 
 import QtQuick 2.0
-import QtQuick.XmlListModel 2.0
 import FingerTerm 1.0
 
 Item {
@@ -61,26 +60,16 @@ Item {
             NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
         }
 
-        XmlListModel {
-            id: xmlModel
-
-            xml: term.getUserMenuXml()
-            query: "/userMenu/item"
-
-            XmlRole { name: "title"; query: "title/string()" }
-            XmlRole { name: "command"; query: "command/string()" }
-            XmlRole { name: "disableOn"; query: "disableOn/string()" }
-        }
-
         Component {
-            id: xmlDelegate
+            id: userMenuDelegate
             Button {
-                text: title.trim()
+                text: modelData.title.trim()
                 isShellCommand: true
-                enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
+                enabled: modelData.disableOn.length === 0
+                         || util.windowTitle.search(modelData.disableOn) === -1
                 onClicked: {
                     menuWin.showing = false
-                    term.putString(command, true)
+                    term.putString(modelData.command, true)
                 }
             }
         }
@@ -120,8 +109,8 @@ Item {
                     Column {
                         spacing: 12*window.pixelRatio
                         Repeater {
-                            model: xmlModel
-                            delegate: xmlDelegate
+                            model: term.userMenuItems()
+                            delegate: userMenuDelegate
                         }
                     }
 

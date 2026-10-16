@@ -42,10 +42,9 @@ bool KeyLoader::loadLayout(const QString &layout)
         return false;
 
     if (layout.at(0) == ':') {  // load from resources
-        QResource res(layout);
-        QByteArray resArr(reinterpret_cast<const char*>(res.data()));
-        QBuffer resBuf(&resArr);
-        ret = loadLayoutInternal(resBuf);
+        // QFile transparently handles compressed resources
+        QFile f(layout);
+        ret = loadLayoutInternal(f);
     } else { // load from file
         QFile f(iUtil->configPath() + "/" + layout + ".layout");
         if (!f.exists()) // fallback to installation directory
@@ -98,7 +97,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
             line.replace("\\x5D", "]");
             line.replace("\\x5C", "\\");
 
-            QStringList parts = line.split(",", QString::KeepEmptyParts);
+            QStringList parts = line.split(QLatin1Char(','));
             if (parts.count() >= 2) {
                 bool ok = true;
                 key.label = parts.at(0);

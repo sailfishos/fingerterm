@@ -25,9 +25,44 @@
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
+// The 256 colour palette is 16 basic colours, a 6x6x6 colour cube with
+// levels 0, 51, 102, ... 255 (indexes 16-231) and a greyscale ramp
+// (indexes 232-255), see the constructor
+static const int cubeStep = 0x33;
+static const int greyRamp[24] = {
+      0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
+    133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
+};
+
+// nearest colour of the palette, which is all a cell can store
+int TextRender::colorIndexForRgb(int r, int g, int b)
+{
+    r = qBound(0, r, 255);
+    g = qBound(0, g, 255);
+    b = qBound(0, b, 255);
+
+    const int half = cubeStep / 2;
+    const int cube = 16 + 36 * ((r + half) / cubeStep) + 6 * ((g + half) / cubeStep) + (b + half) / cubeStep;
+    if (r != g || g != b)
+        return cube;
+
+    // greys: the greyscale ramp is finer than the cube
+    int best = 0;
+    for (int i = 1; i < 24; i++) {
+        if (qAbs(greyRamp[i] - r) < qAbs(greyRamp[best] - r))
+            best = i;
+    }
+    const int cubeLevel = (r + half) / cubeStep * cubeStep;
+    return qAbs(cubeLevel - r) < qAbs(greyRamp[best] - r) ? cube : 232 + best;
+}
+
 TextRender::TextRender(QQuickItem *parent)
     : QQuickPaintedItem(parent)
     , newSelection(true)
+    , iFontWidth(0)
+    , iFontHeight(0)
+    , iFontDescent(0)
+    , iShowBufferScrollIndicator(false)
     , iAllowGestures(true)
 {
     setFlag(ItemHasContents);
@@ -57,18 +92,14 @@ TextRender::TextRender(QQuickItem *parent)
     iColorTable.append(QColor(255, 255, 255));
 
     // colour cube
-    for (int r = 0x00; r < 0x100; r += 0x33)
-        for (int g = 0x00; g < 0x100; g += 0x33)
-            for (int b = 0x00; b < 0x100; b += 0x33)
+    for (int r = 0; r <= 255; r += cubeStep)
+        for (int g = 0; g <= 255; g += cubeStep)
+            for (int b = 0; b <= 255; b += cubeStep)
                 iColorTable.append(QColor(r, g, b));
 
     // greyscale ramp
-    int ramp[] = {
-          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
-        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
-    };
-    for (int i = 0; i < 24; i++)
-        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
+    for (int grey : greyRamp)
+        iColorTable.append(QColor(grey, grey, grey));
 
     if (iColorTable.size() != 256)
         qFatal("invalid color table");
@@ -76,12 +107,13 @@ TextRender::TextRender(QQuickItem *parent)
     iShowBufferScrollIndicator = false;
 
     iFont = QFont(sUtil->fontFamily(), sUtil->fontSize());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    iFont.setStyleHint(QFont::Monospace);
+#else
     iFont.setStyleHint(QFont::Monospace, QFont::StyleStrategy(QFont::PreferDefault | QFont::ForceIntegerMetrics));
+#endif
     iFont.setBold(false);
-    QFontMetrics fontMetrics(iFont);
-    iFontHeight = fontMetrics.height();
-    iFontWidth = fontMetrics.maxWidth();
-    iFontDescent = fontMetrics.descent();
+    updateFontMetrics();
 
     Q_ASSERT(sTerm);
     connect(sTerm, &Terminal::displayBufferChanged, this, &TextRender::redraw);
@@ -388,12 +420,29 @@ void TextRender::setFontPointSize(int psize)
 {
     if (iFont.pointSize() != psize) {
         iFont.setPointSize(psize);
-        QFontMetrics fontMetrics(iFont);
-        iFontHeight = fontMetrics.height();
-        iFontWidth = fontMetrics.maxWidth();
-        iFontDescent = fontMetrics.descent();
+        updateFontMetrics();
         emit fontSizeChanged();
     }
+}
+
+void TextRender::updateFontMetrics()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    // Qt 6 has no QFont::ForceIntegerMetrics. Adjust the glyph advance with
+    // letter spacing so that a character cell is a whole number of pixels wide
+    // (rounded, like ForceIntegerMetrics did) and text runs stay aligned with
+    // the backgrounds, cursor and selection.
+    iFont.setLetterSpacing(QFont::AbsoluteSpacing, 0);
+    const qreal advance = QFontMetricsF(iFont).horizontalAdvance(QLatin1Char('M'));
+    iFontWidth = qMax(1, qRound(advance));
+    iFont.setLetterSpacing(QFont::AbsoluteSpacing, iFontWidth - advance);
+    QFontMetrics fontMetrics(iFont);
+#else
+    QFontMetrics fontMetrics(iFont);
+    iFontWidth = fontMetrics.maxWidth();
+#endif
+    iFontHeight = fontMetrics.height();
+    iFontDescent = fontMetrics.descent();
 }
 
 void TextRender::setShowBufferScrollIndicator(bool show)
