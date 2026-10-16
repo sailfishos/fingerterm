@@ -1,5 +1,5 @@
 Name: fingerterm
-Version: 1.4.10
+Version: 1.5.0
 Release: 1
 Summary: A terminal emulator with a custom virtual keyboard
 License: GPLv2
