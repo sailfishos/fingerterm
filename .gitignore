@@ -4,3 +4,5 @@ Makefile
 moc_*
 ./fingerterm
 qrc_resources.cpp
+*.qm
+*.ts
